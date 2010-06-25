@@ -26,7 +26,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 ----------------------------------------------------------------------*/
 -->begin
 using System;
-using Microsoft.Contracts;
 
 -->namespace
 
@@ -36,38 +35,30 @@ public class Parser {
 	const bool x = false;
 	const int minErrDist = 2;
 	
-	public Scanner/*!*/ scanner;
-	public Errors/*!*/  errors;
+	public Scanner scanner;
+	public Errors  errors;
 
-	public Token/*!*/ t;    // last recognized token
-	public Token/*!*/ la;   // lookahead token
+	public Token t;    // last recognized token
+	public Token la;   // lookahead token
 	int errDist = minErrDist;
 
 -->declarations
 
-	public Parser(Scanner/*!*/ scanner, Errors/*!*/ errors) {
+	public Parser(Scanner scanner) {
 		this.scanner = scanner;
-		this.errors = errors;
-		Token! tok = new Token();
-		tok.val = "";
-		this.la = tok;
-		this.t = new Token(); // just to satisfy its non-null constraint
+		errors = new Errors();
 	}
 
 	void SynErr (int n) {
-		if (errDist >= minErrDist) errors.SynErr(la.filename, la.line, la.col, n);
+		if (errDist >= minErrDist) errors.SynErr(la.line, la.col, n);
 		errDist = 0;
 	}
 
-	public void SemErr (string! msg) {
-		if (errDist >= minErrDist) errors.SemErr(t, msg);
+	public void SemErr (string msg) {
+		if (errDist >= minErrDist) errors.SemErr(t.line, t.col, msg);
 		errDist = 0;
 	}
 	
-    public void SemErr(IToken! tok, string! msg) {
-	  errors.SemErr(tok, msg);
-	}
-
 	void Get () {
 		for (;;) {
 			t = la;
@@ -120,7 +111,7 @@ public class Parser {
     Expect(0);
 	}
 	
-	static readonly bool[,]! set = {
+	static readonly bool[,] set = {
 -->initialization
 	};
 } // end Parser
@@ -128,30 +119,21 @@ public class Parser {
 
 public class Errors {
 	public int count = 0;                                    // number of errors detected
-	public System.IO.TextWriter! errorStream = Console.Out;   // error messages go to this stream
-//  public string errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
-  public string! errMsgFormat4 = "{0}({1},{2}): Error: {3}"; // 0=line, 1=column, 2=text
-  public string! errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
+	public System.IO.TextWriter errorStream = Console.Out;   // error messages go to this stream
+  public string errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
   
-	public void SynErr (string filename, int line, int col, int n) {
+	public void SynErr (int line, int col, int n) {
 		string s;
-		Console.Write("{0}({1},{2}): syntax error: ", filename, line, col);
 		switch (n) {
 -->errors
 			default: s = "error " + n; break;
 		}
-		//errorStream.WriteLine(errMsgFormat, line, col, s);
-		errorStream.WriteLine(s);
-		count++;
-	}
-
-	public void SemErr (int line, int col, string! s) {
 		errorStream.WriteLine(errMsgFormat, line, col, s);
 		count++;
 	}
 
-	public void SemErr (string filename, int line, int col, string! s) {
-		errorStream.WriteLine(errMsgFormat4, filename, line, col, s);
+	public void SemErr (int line, int col, string s) {
+		errorStream.WriteLine(errMsgFormat, line, col, s);
 		count++;
 	}
 	
@@ -159,10 +141,6 @@ public class Errors {
 		errorStream.WriteLine(s);
 		count++;
 	}
-
-    public void SemErr(IToken! tok, string! msg) {  // semantic errors
-      SemErr(tok.filename, tok.line, tok.col, msg);
-    }
 	
 	public void Warning (int line, int col, string s) {
 		errorStream.WriteLine(errMsgFormat, line, col, s);
