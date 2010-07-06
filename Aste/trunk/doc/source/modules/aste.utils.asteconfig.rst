@@ -1,9 +1,9 @@
-utils.config
-++++++++++++
+utils.asteconfig
+++++++++++++++++
 
 ConfigWrapper
 ~~~~~~~~~~~~~
-.. kaaclass:: aste.utils.config.ConfigWrapper
+.. kaaclass:: aste.utils.asteconfig.ConfigWrapper
    :synopsis:
    
    .. automethods::
@@ -11,7 +11,7 @@ ConfigWrapper
 
 ConvenientConfig
 ~~~~~~~~~~~~~~~~
-.. kaaclass:: aste.utils.config.ConvenientConfig
+.. kaaclass:: aste.utils.asteconfig.ConvenientConfig
    :synopsis:
    
    .. automethods::

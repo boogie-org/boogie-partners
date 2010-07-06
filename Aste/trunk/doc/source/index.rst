@@ -20,6 +20,7 @@ Indices and tables
 ==================
 * :ref:`todo`
 * :ref:`genindex`
+
 .. * :ref:`modindex`
 .. * :ref:`search`
 .. * :ref:`glossary`
