@@ -35,19 +35,18 @@ Paths: {
 	# are hard-coded in the Python script and used relative to these main paths.
 
 	Aste: 'C:\\scmalte\\Aste'
-	VisualStudio: 'C:\\Program Files (x86)\\Microsoft Visual Studio 9.0'
-	
 	CheckoutRoot: 'C:\\Temp\\aste'
 	SpecSharp: $Paths.CheckoutRoot + '\\SpecSharp'
 	Boogie: $Paths.CheckoutRoot + '\\Boogie'
 	SscBoogie: $Paths.CheckoutRoot + '\\SscBoogie'
 }
 
-Apps: {	
+Apps: {
+	VisualStudio: 'C:\\Program Files (x86)\\Microsoft Visual Studio 9.0'
 	regasm: 'c:\\Windows\\Microsoft.NET\\Framework\\v2.0.50727\\RegAsm.exe'
-	devenv: $Paths.VisualStudio + '\\Common7\\IDE\\devenv.com'
+	devenv: $Apps.VisualStudio + '\\Common7\\IDE\\devenv.com'
 			# devenv.exe won't work!
-	nmake: $Paths.VisualStudio + '\\VC\\bin\\nmake.exe'
+	nmake: $Apps.VisualStudio + '\\VC\\bin\\nmake.exe'
 	svn: 'C:\\Program Files\\SlikSvn\\bin\\svn.exe'
 			# Any cli svn client, e.g. http://www.sliksvn.com/en/download
 }
