@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
+from aste.utils.misc import ensure_directories_exist
 
 """
  .. todo::
@@ -67,7 +68,7 @@ class CheckoutWorker(SVNMixin, BaseWorker):
         variable ``SVN.Update``.
         
         Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
-        the summary_local ``revision`` number.
+        the summary_current ``revision`` number.
         
         If the SVN command terminates with a non-zero return :func:`abort` is
         invoked to abort the execution.
@@ -132,8 +133,11 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
             ^\#.*
         ''', re.VERBOSE) #  | re.MULTILINE
         
-    summary_local = ''
-    summary_repo = ''
+    summary_current = ''
+    summary_checkout_dir = ''
+    summary_checkout_file = ''
+    summary_repo_dir = ''
+    summary_repo_file = ''
     project = ''
     msg_prefix = ''
     
@@ -147,9 +151,17 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
         super(CommitSummaryWorker, self).__init__(env)
         
         self.project = project
-        self.summary_local = self.cfg.Logging.SummaryLog
-        self.summary_repo = os.path.join(self.cfg.CommitSummary[project].From,
-                os.path.basename(self.cfg.Logging.SummaryLog))
+        
+        self.summary_current = self.cfg.Logging.SummaryLog
+        
+        self.summary_repo_dir = self.cfg.CommitSummary[project].To
+        self.summary_repo_file = "%s/%s" % (
+            self.cfg.CommitSummary[project].To,
+            os.path.basename(self.summary_current))
+          
+        self.summary_checkout_dir = self.cfg.CommitSummary[project].From
+        self.summary_checkout_file = os.path.join(
+            self.summary_checkout_dir, os.path.basename(self.summary_current))
     
     def commit_summary_if_changed(self, msg_prefix=''):
         self.msg_prefix = msg_prefix
@@ -172,27 +184,33 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
     
 
     def hasStatusChanged(self):
-        if os.path.isfile(self.summary_repo):
-            os.remove(self.summary_repo)
+        # Remove the local folder that contains the checkout of the repo
+        # summary, if existing.
+        if os.path.exists(self.summary_checkout_dir):
+            cmd = "rmdir /s/q %s" % self.summary_checkout_dir
+            self.run(cmd, shell=True)
 
-        # Strangely, updating even works (i.e. no error, no errorlevel) when
-        # the resource to svn_update doesn't exist neither locally nor remotely.
-        self.svn_update(self.summary_repo,
-                        user=self.cfg.CommitSummary[self.project].User,
-                        password=self.cfg.CommitSummary[self.project].Password)
+        # (Re)Create that folder.
+        ensure_directories_exist(self.summary_checkout_dir)
 
-        if os.path.isfile(self.summary_repo):
-            return len(self.diff(self.summary_local, self.summary_repo)) != 0
-        else:
-            # Previous summary log doesn't exists, hence we commit in any case.
-            return True
+
+        # Checkout the repo summary.
+        self.svn_checkout(self.summary_repo_dir, self.summary_checkout_dir,
+                          user=self.cfg.CommitSummary[self.project].User,
+                          password=self.cfg.CommitSummary[self.project].Password)
+        
+        differs = True
+
+        # Diff current against repo summary, if the latter exists.
+        if os.path.isfile(self.summary_checkout_file):
+            differs = len(self.diff(self.summary_current,
+                                    self.summary_checkout_file)) != 0
+
+        return differs
             
     def diff(self, summaryA, summaryB):
         summaryA = self._readAndPrepare(summaryA)
         summaryB = self._readAndPrepare(summaryB)
-
-        # print summaryA
-        # print summaryB
         
         # Returns a generator producing the actual differences.
         # Attention: since diff is a generator it will only return its
@@ -212,7 +230,7 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
         return lines
     
     def commitCurrentSummary(self):
-        self.commitSummary(self.summary_local)
+        self.commitSummary(self.summary_current)
     
     def commitSummary(self, summary):
         self._commitSummary(summary)
@@ -222,14 +240,17 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
         .. todo:: Make message configurable via config file.
         """
 
-        shutil.copyfile(summary, self.summary_repo)
+        shutil.copyfile(summary, self.summary_checkout_file)
 
+        # Ensure that the summary we are about to commit has already been
+        # added to the repo.
         self.svn_ensure_version_controlled(
-            self.summary_repo,
+            self.summary_checkout_file,
             user=self.cfg.CommitSummary[self.project].User,
             password=self.cfg.CommitSummary[self.project].Password)
         
+        # Commit the current summary.
         msg = "[Aste] %sCommitting summary due to changes." % self.msg_prefix
-        self.svn_commit(self.summary_repo, msg,
+        self.svn_commit(self.summary_checkout_file, msg,
                         user=self.cfg.CommitSummary[self.project].User,
                         password=self.cfg.CommitSummary[self.project].Password)

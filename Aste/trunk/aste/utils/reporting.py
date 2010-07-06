@@ -153,6 +153,7 @@ class BuildStatusReportGenerator(object):
         text += self.INDENT + "Tests (only short): %s (%s)\n" % (
                             self.__env.cfg.Flags.Tests,
                             self.__env.cfg.Flags.ShortTestsOnly)
+        text += self.INDENT + "Commit summary (if changed): %s\n" % self.__env.cfg.Flags.UploadSummary 
         text += self.INDENT + "Upload build: %s\n" % self.__env.cfg.Flags.UploadTheBuild 
         
         for project in self.__env.data['projects']:
