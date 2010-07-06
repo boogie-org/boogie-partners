@@ -1,0 +1,19 @@
+# Aste started: 2010-06-28 17:14:50
+# Host id: Boogiebox
+# [2010-06-28 17:14:53] SpecSharp revision: 54390
+# [2010-06-28 17:14:56] Boogie revision: 54604
+# [2010-06-28 17:14:59] SscBoogie revision: 52534
+[2010-06-28 17:40:08] 1 out of 24 test(s) in D:\Temp\aste\Boogie\Test\alltests.txt failed
+['VSI-Benchmarks']
+# [2010-06-28 17:42:01] Released nightly of Boogie
+[2010-06-28 17:42:29] [Error] C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE\devenv.com SscBoogie.sln /Build Debug
+
+    D:\Temp\aste\SscBoogie\Source\BytecodeTranslation\Translator.ssc(801,11): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    D:\Temp\aste\SscBoogie\Source\BytecodeTranslation\Translator.ssc(802,11): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    D:\Temp\aste\SscBoogie\Source\BytecodeTranslation\Translator.ssc(804,28): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    D:\Temp\aste\SscBoogie\Source\SscBoogie\Main.ssc(344,7): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    D:\Temp\aste\SscBoogie\Source\SscBoogie\Main.ssc(360,24): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    D:\Temp\aste\SscBoogie\Source\SscBoogie\Main.ssc(362,67): error CS0246: The type or namespace name 'BoogiePL' could not be found (are you missing a using directive or an assembly reference?)
+    3 error
+    3 error
+    2 failed

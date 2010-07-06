@@ -1,0 +1,8 @@
+# Aste started: 2010-07-02 13:00:03
+# Host id: Boogiebox
+# [2010-07-02 13:00:07] SpecSharp revision: 54390
+# [2010-07-02 13:00:10] Boogie revision: 54747
+# [2010-07-02 13:00:12] SscBoogie revision: 54700
+[2010-07-02 13:24:47] 1 out of 24 test(s) in D:\Temp\aste\Boogie\Test\alltests.txt failed
+['VSI-Benchmarks']
+# [2010-07-02 13:26:33] Released nightly of Boogie
