@@ -43,6 +43,7 @@
 import sys
 import os
 import re
+import ordereddict
 from subprocess import (Popen, PIPE, STDOUT)
 from datetime import datetime
 from aste.utils.reporting import AsteExceptionFormatter
@@ -350,7 +351,19 @@ def abortIfSevere(match):
 def raiseNonBuildError(match):
     raise aste.NonBuildError(str(match))
 
-class BuildWorker(MatchingWorker):   
+class BuildWorker(MatchingWorker):
+    __project = None
+    __project_data = None
+    
+    def __init__(self, env, project_name):
+        print "env", env
+        print "project_name", project_name
+
+        super(BuildWorker, self).__init__(env)
+
+        self.__project = project_name
+        self.__create_data_entry()
+
     matchers = {
         'general': [
             (['warning CS\d+', 'NMAKE : fatal error .\d+:'], [accept], [str])
@@ -452,3 +465,27 @@ class BuildWorker(MatchingWorker):
         result['matches'] = matches
         
         return result
+
+    def __create_data_entry(self):        
+        self.env.data['projects'][self.project] = {
+            "build": {
+                "started": False,
+                "success": False,
+                "data": {}
+            },
+            "tests": {
+                "succeeded": [],
+                "failed": []
+            },
+            "data": ordereddict.OrderedDict()
+        }
+            
+        self.__project_data = self.env.data['projects'][self.project]
+
+    @property
+    def project(self):
+        return self.__project
+
+    @property
+    def project_data(self):
+        return self.__project_data

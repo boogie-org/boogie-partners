@@ -21,16 +21,15 @@
 # --------------------------------- :LICENSE ----------------------------------
 
 from aste.workers.workers import BuildWorker
-from aste.workers.mixins import TestRunnerMixin, ProjectWorkerMixin
+from aste.workers.mixins import TestRunnerMixin
 from aste.utils.misc import zip_directory
 
-class BoogieWorker(ProjectWorkerMixin, TestRunnerMixin, BuildWorker):
+class BoogieWorker(TestRunnerMixin, BuildWorker):
     """Implements the steps necessary to build Boogie.
     """
     
     def __init__(self, env):
-        super(BoogieWorker, self).__init__(env)
-        self.project_setup('Boogie')
+        super(BoogieWorker, self).__init__(env, 'Boogie')
         
     def copySpecSharpToBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
@@ -38,11 +37,13 @@ class BoogieWorker(ProjectWorkerMixin, TestRunnerMixin, BuildWorker):
         self.runSafely(cmd)
 
     def buildBoogie(self):
+        self.project_data['build']['started'] = True
+        
         self.cd(self.cfg.Paths.Boogie + "\Source")
         cmd = "%s Boogie.sln /Build Debug" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
         
-        self.project_build_success = True
+        self.project_data['build']['success'] = True
 
     def buildDafny(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
@@ -54,7 +55,7 @@ class BoogieWorker(ProjectWorkerMixin, TestRunnerMixin, BuildWorker):
             self.cfg.Paths.Boogie + "\\Test\\alltests.txt", 'testBoogie',
             self.cfg.Flags.ShortTestsOnly)
             
-        self.project_tests['failed'] = failed
+        self.project_data['tests']['failed'] = failed
 
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")

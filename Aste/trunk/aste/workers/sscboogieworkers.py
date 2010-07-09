@@ -21,20 +21,20 @@
 # --------------------------------- :LICENSE ----------------------------------
 
 from aste.workers.workers import BuildWorker
-from aste.workers.mixins import TestRunnerMixin, ProjectWorkerMixin
+from aste.workers.mixins import TestRunnerMixin
 from aste.utils.misc import zip_directory
 
-class SscBoogieWorker(ProjectWorkerMixin, TestRunnerMixin, BuildWorker):
+class SscBoogieWorker(TestRunnerMixin, BuildWorker):
     """Implements the steps necessary to build SscBoogie.
     """
 
     def __init__(self, env):
-        super(SscBoogieWorker, self).__init__(env)
-        self.project_setup('SscBoogie')
+        super(SscBoogieWorker, self).__init__(env, 'SscBoogie')
     
     def buildSscBoogie(self):
-        self.cd(self.cfg.Paths.SscBoogie + "\Binaries")
+        self.project_data['build']['started'] = True
         
+        self.cd(self.cfg.Paths.SscBoogie + "\Binaries")        
         cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
         
@@ -42,14 +42,14 @@ class SscBoogieWorker(ProjectWorkerMixin, TestRunnerMixin, BuildWorker):
         cmd = "%s SscBoogie.sln /Build Debug" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
         
-        self.project_build_success = True
+        self.project_data['build']['success'] = True
     
     def testSscBoogie(self):
         failed = self.runTestFromAlltestsFile(
             self.cfg.Paths.SscBoogie + "\\Test\\alltests.txt", 'testSscBoogie',
             self.cfg.Flags.ShortTestsOnly)
                 
-        self.project_tests['failed'] = failed
+        self.project_data['tests']['failed'] = failed
 
     def registerSscBoogie(self):
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")

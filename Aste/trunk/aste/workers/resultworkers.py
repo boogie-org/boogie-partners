@@ -133,16 +133,33 @@ class TimingsRecorder(BaseWorker):
 
 
 class ReleaseUploader(BaseWorker):
+    default_description = ("This download category contains automatically"
+                        + " released nightly builds, reflecting the current"
+                        + " state of Boogie's development. They are intended"
+                        + " for experimental use only. Please download the"
+                        + " Recommended Download to obtain the most recent"
+                        + " release. The Other Available Downloads are in"
+                        + " ascending order with the most recent release at"
+                        + " the bottom of the list.")    
+    default_release_name = 'Nightly builds'
+    client = None
+
     def __init__(self, env):
         super(ReleaseUploader, self).__init__(env)
 
         self.client = Client(self.cfg.Nightlies.SoapUrl)
         
     def create_release(self, project_name, username, password,
-                       release_name='nightly builds',
-                       release_description='nightly builds',
+                       release_name=None,
+                       release_description=None,
                        status='Planning', show_to_public=True,
                        is_default_release=False):
+        
+        if release_name == None:
+            release_name = self.default_release_name
+
+        if release_description == None:
+            release_description = self.default_description
     
         release_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     
@@ -154,8 +171,8 @@ class ReleaseUploader(BaseWorker):
         return result
     
     def upload_release(self, project_name, revision_number, username, password,
-                     local_filename='nightly', remote_filename=None,
-                     remote_linktext=None, release_name='nightly builds'):
+                     local_filename, remote_filename=None,
+                     remote_linktext=None, release_name=None):
         
         """
             .. todo::
@@ -165,6 +182,8 @@ class ReleaseUploader(BaseWorker):
     
         release_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         
+        if release_name == None:
+            release_name = self.default_release_name
         
         try:
             self.create_release(project_name, username, password)
@@ -202,8 +221,6 @@ class ReleaseUploader(BaseWorker):
         with open(local_filename, 'rb') as fh:
             fc = fh.read()
     
-#        print local_filename, release_file.FileName, release_file.Name 
-        
         release_file.FileType = 'RuntimeBinary'
         release_file.FileData = fc.encode('base64')
     

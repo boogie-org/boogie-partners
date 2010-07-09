@@ -23,11 +23,13 @@
 """
 Development tasks, not intended to be run from a productive system.
 """
-from aste.tasks.tasks import Task, BuildTask
+from aste.tasks.tasks import Task, AbstractBuildTask
 from aste.workers.specsharpworkers import SpecSharpWorker
 from aste.workers.boogieworkers import BoogieWorker
 from aste.workers.sscboogieworkers import SscBoogieWorker
 from aste.workers.svnworkers import CommitSummaryWorker
+import aste.utils.errorhandling as errorhandling
+from aste.tasks.tasks import BoogieTask
 
 class SpecSharpCheckinTests(Task):
     def run(self):
@@ -55,13 +57,18 @@ class Noop(Task):
     def run(self): pass
         # Does nothing
         
-class ReleaseBothBoogies(BuildTask):
-    def run(self):
-        projects = [
-            ('Boogie', BoogieWorker(self.env)),
-            ('SscBoogie', SscBoogieWorker(self.env))
-        ]
+class ReleaseBothBoogies(AbstractBuildTask):
+    def __init__(self, env):
+        super(ReleaseBothBoogies, self).__init__(env, None)
         
-        for name, worker in projects:
-            self.project = name
-            self.upload_release(worker, revision_number=0)
+    def run(self):
+        workers = [BoogieWorker(self.env), SscBoogieWorker(self.env)]
+        
+        for worker in workers:
+            self.worker = worker
+            self.upload_release(worker, revision=0)
+            
+class UploadBoogie(BoogieTask):
+    @errorhandling.add_context("Building Boogie")
+    def build(self):
+        self.upload_release(self.worker)

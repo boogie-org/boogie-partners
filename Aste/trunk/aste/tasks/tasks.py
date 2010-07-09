@@ -59,11 +59,12 @@ class CheckoutTask(Task):
         if self.cfg.Flags.SscBoogie:
             checkoutWorker.getSscBoogie()
 
-class BuildTask(Task):
+class AbstractBuildTask(Task):
     """Abstract class"""
 
-    # Must be set by the inheriting class!
-    project = ''
+    def __init__(self, env, buildWorker):
+        super(AbstractBuildTask, self).__init__(env)
+        self.worker = buildWorker
     
     def build(self):
         """Abstract method"""
@@ -71,17 +72,27 @@ class BuildTask(Task):
     
     def run(self, **kwargs):
         committer = CommitSummaryWorker(self.env, self.project)
-        msg_prefix = 'Success: '
-        
+        exception = None
+
         try:
             self.build(**kwargs)
-        except BuildError:
+        except BuildError as exception:
             # Forward exception to the next layer (it should finally reach
             # run.py and trigger an error mail.
-            msg_prefix = 'Error: '
             raise
         finally:
-            if committer.commit_summary_if_changed(msg_prefix=msg_prefix):
+            message = '%s build ' % self.project
+            
+            if exception:
+                message += 'failed'
+            else:
+                message += 'succeeded'
+            
+            tests_failed = len(self.worker.project_data['tests']['failed'])
+            if tests_failed != 0:
+                message += ", %s test(s) failed" % tests_failed
+            
+            if committer.commit_summary_if_changed(message=message):
                 self.env.data['commits'].append(self.project)
 
     def upload_release(self, worker, revision=None):
@@ -96,9 +107,14 @@ class BuildTask(Task):
         username = self.cfg.Nightlies[self.project].User
         password = aste.utils.misc.rot47(self.cfg.Nightlies[self.project].Password)
         projectname = self.cfg.Nightlies[self.project].Project
-                
+
         if revision == None:
-            revision = self.env.data["CheckoutWorker"]['get' + self.project]['last_changed_revision']
+            # CheckoutWorker key is only presented if this current run
+            # includes checking-out the sources, which might not be the case. 
+            if "CheckoutWorker" in self.env.data:
+                revision = self.env.data["CheckoutWorker"]['get' + self.project]['last_changed_revision']
+            else:
+                revision = 0
         
         # ATTENTION: worker must implement zip_binaries() as expected!
         worker.zip_binaries(filename)
@@ -106,69 +122,68 @@ class BuildTask(Task):
                                                  username, password, filename)
         
         worker.noteSummary('Released nightly of %s' % self.project, prefix='# ')
+        
+    @property
+    def project(self):
+        return self.worker.project
 
-class SpecSharpTask(BuildTask):
-    project = 'SpecSharp'
+class SpecSharpTask(AbstractBuildTask):
+    def __init__(self, env):
+        super(SpecSharpTask, self).__init__(env, SpecSharpWorker(env))
     
     @errorhandling.add_context("Building Spec#")
     def build(self):
-        sscWorker = SpecSharpWorker(self.env)
-
-        sscWorker.registerSpecSharpLKG()
-        sscWorker.buildSpecSharp()
+        self.worker.registerSpecSharpLKG()
+        self.worker.buildSpecSharp()
 
         if self.cfg.Flags.Tests and self.cfg.Flags.CheckinTests:
-            sscWorker.buildSpecSharpCheckinTests()
+            self.worker.buildSpecSharpCheckinTests()
 
-        sscWorker.registerSpecSharpCompiler()
+        self.worker.registerSpecSharpCompiler()
 
-class BoogieTask(BuildTask):
-    project = 'Boogie'    
-    boogieWorker = None
-    
+class BoogieTask(AbstractBuildTask):    
     def __init__(self, env):
-        super(BoogieTask, self).__init__(env)
-        self.boogieWorker = BoogieWorker(self.env)
+        super(BoogieTask, self).__init__(env, BoogieWorker(env))
         
     def runBuild(self):
         """
         .. todo:: Move buildDafny() to a dedicated worker and task.
         """
-        self.boogieWorker.copySpecSharpToBoogie()
-        self.boogieWorker.buildBoogie()
+        self.worker.copySpecSharpToBoogie()
+        self.worker.buildBoogie()
         
         if self.cfg.Flags.Dafny:
-            self.boogieWorker.buildDafny()
+            self.worker.buildDafny()
         
     def runTests(self):
-        self.boogieWorker.testBoogie()
+        self.worker.testBoogie()
     
     @errorhandling.add_context("Building Boogie")    
     def build(self):
         self.runBuild()
+        
         if self.cfg.Flags.Tests:
             self.runTests()
 
             if self.cfg.Flags.UploadTheBuild:
-                self.upload_release(self.boogieWorker)
+                self.upload_release(self.worker)
 
 
-class SscBoogieTask(BuildTask):
-    project = 'SscBoogie'
+class SscBoogieTask(AbstractBuildTask):
+    def __init__(self, env):
+        super(SscBoogieTask, self).__init__(env, SscBoogieWorker(env))
     
     @errorhandling.add_context("Building SscBoogie")
     def build(self): 
-        sscBoogieWorker = SscBoogieWorker(self.env)
-        sscBoogieWorker.buildSscBoogie()
+        self.worker.buildSscBoogie()
         
         if self.cfg.Flags.Tests:
-            sscBoogieWorker.testSscBoogie()
+            self.worker.testSscBoogie()
 
             if self.cfg.Flags.UploadTheBuild:
-                self.upload_release(sscBoogieWorker)
+                self.upload_release(self.worker)
 
-        sscBoogieWorker.registerSscBoogie()
-        
+        self.worker.registerSscBoogie()
         
 class FullBuild(Task):
     def run(self):
@@ -183,8 +198,6 @@ class BuildOnly(FullBuild):
     def run(self):
         self.cfg.Flags.Tests = False
         super(BuildOnly, self).run()
-            
-            
 
 class RecordTimings(Task):
     @errorhandling.add_context("Recording test timings")

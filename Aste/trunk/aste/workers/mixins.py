@@ -35,9 +35,7 @@ import re
 import time
 from aste.workers import workers
 import aste.utils.misc
-import aste.utils.errorhandling as errorhandling
 from aste.aste import NonBuildError
-import ordereddict
 
 class TestRunnerMixin(workers.BuildWorker):
     """
@@ -162,7 +160,6 @@ class SVNMixin(workers.BaseWorker):
 
     def svn_ensure_version_controlled(self, path, auth=True, user=None,
                                       password=None, abort=True):
-
         """
         Ensures that ``path`` is under version control.
         **Note**: This will fail if more than the last part of ``path`` are
@@ -178,12 +175,12 @@ class SVNMixin(workers.BaseWorker):
             result = self._run_svn('add ' + path, auth=auth, user=user,
                                    password=password, abort=abort)
 
-            # ATTENTION: If abort == False the above svn command might have
-            # failed and we nevertheless perform the following commit!
-
-            msg = "[Aste] Added " + os.path.basename(path)
-            self.svn_commit(path, msg, auth=True, user=user,
-                            password=password, abort=True)
+#            # ATTENTION: If abort == False the above svn command might have
+#            # failed and we nevertheless perform the following commit!
+#
+#            msg = "[Aste] Added " + os.path.basename(path)
+#            self.svn_commit(path, msg, auth=True, user=user,
+#                            password=password, abort=True)
 
     def svn_update(self, path, auth=True, user=None, password=None, abort=True):
         arg = 'update %s' % path
@@ -239,47 +236,3 @@ class SVNMixin(workers.BaseWorker):
 
         return self._run_svn(arg, auth=auth, user=user, password=password,
                              abort=abort)
-                             
-
-class ProjectWorkerMixin(workers.BaseWorker):
-    __project = None
-    __project_data = None
-    
-    def project_setup(self, name):
-        self.__project = name
-        self.__create_data_entry()
-    
-    def __create_data_entry(self):        
-        self.env.data['projects'][self.project] = {
-            "build": {
-                "success": False,
-                "data": {}
-            },
-            "tests": {
-                "succeeded": [],
-                "failed": []
-            }
-        }
-            
-        self.__project_data = self.env.data['projects'][self.project]
-        self.__project_data['data'] = {}
-
-    @property
-    def project(self):
-        return self.__project
-        
-    @property
-    def project_build_success(self):
-        return self.__project_data['build']['success']
-        
-    @project_build_success.setter
-    def project_build_success(self, success):
-        self.__project_data['build']['success'] = success
-        
-    @property
-    def project_build_data(self):
-        return self.__project_data['build']['data']
-        
-    @property
-    def project_tests(self):
-        return self.__project_data['tests']

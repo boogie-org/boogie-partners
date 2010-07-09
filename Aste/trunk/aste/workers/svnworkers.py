@@ -133,13 +133,14 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
             ^\#.*
         ''', re.VERBOSE) #  | re.MULTILINE
         
+    default_commit_message = "[Aste] Committing summary due to changes."
+        
     summary_current = ''
     summary_checkout_dir = ''
     summary_checkout_file = ''
     summary_repo_dir = ''
     summary_repo_file = ''
     project = ''
-    msg_prefix = ''
     
     def __init__(self, env, project):
         """
@@ -163,14 +164,13 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
         self.summary_checkout_file = os.path.join(
             self.summary_checkout_dir, os.path.basename(self.summary_current))
     
-    def commit_summary_if_changed(self, msg_prefix=''):
-        self.msg_prefix = msg_prefix
+    def commit_summary_if_changed(self, message=None):
         committed = False
 
         if self.hasStatusChanged():
             if self.cfg.Flags.UploadSummary:
-                self.commitCurrentSummary()
                 committed = True
+                self.commitCurrentSummary(message=message)
             else:
                 self.note(("Summary (project=%s) has changed but won't be " +
                            "committed due to configuration flag " +
@@ -180,8 +180,6 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
                        "committed.") % self.project)
             
         return committed
-
-    
 
     def hasStatusChanged(self):
         # Remove the local folder that contains the checkout of the repo
@@ -229,16 +227,12 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
 
         return lines
     
-    def commitCurrentSummary(self):
-        self.commitSummary(self.summary_current)
+    def commitCurrentSummary(self, message=None):
+        self.commitSummary(self.summary_current, message=message)
     
-    def commitSummary(self, summary):
-        self._commitSummary(summary)
-    
-    def _commitSummary(self, summary):
-        """
-        .. todo:: Make message configurable via config file.
-        """
+    def commitSummary(self, summary, message=None):
+        if message == None:
+            message = self.default_commit_message
 
         shutil.copyfile(summary, self.summary_checkout_file)
 
@@ -248,9 +242,8 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
             self.summary_checkout_file,
             user=self.cfg.CommitSummary[self.project].User,
             password=self.cfg.CommitSummary[self.project].Password)
-        
+
         # Commit the current summary.
-        msg = "[Aste] %sCommitting summary due to changes." % self.msg_prefix
-        self.svn_commit(self.summary_checkout_file, msg,
+        self.svn_commit(self.summary_checkout_file, message,
                         user=self.cfg.CommitSummary[self.project].User,
                         password=self.cfg.CommitSummary[self.project].Password)

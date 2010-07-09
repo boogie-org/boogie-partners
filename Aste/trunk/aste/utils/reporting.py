@@ -24,7 +24,6 @@
 Functionality related to creating reports.
 """
 
-import os
 import textwrap
 
 def _concat(what, to):
@@ -108,15 +107,18 @@ class BuildStatusReportGenerator(object):
             text = self.__append_revision_if_set(text, project)
             text += "\n"
             
-            if data['build']['success'] and not data['tests']['failed']:
-                text += self.INDENT + "OK\n"
-            else:                
-                if not data['build']['success']:
-                    text += self.INDENT + "Build failed\n"
+            if not data['build']['started']:
+                text += self.INDENT + "Build not performed\n"
+            else:
+                if data['build']['success'] and not data['tests']['failed']:
+                    text += self.INDENT + "OK\n"
                 else:
-                    # Tests must have failed
-                    text += "%s%s %s\n" % (self.INDENT,
-                        len(data['tests']['failed']), "test(s) failed")
+                    if not data['build']['success']:
+                        text += self.INDENT + "Build failed\n"
+                    else:
+                        # Tests must have failed
+                        text += "%s%s %s\n" % (self.INDENT,
+                            len(data['tests']['failed']), "test(s) failed")
                             
             if project in self.__env.data['commits']:
                 text += self.INDENT + "Summary changed\n"
@@ -140,11 +142,11 @@ class BuildStatusReportGenerator(object):
         if tests_failed: pieces.append('Tests failed')
         if summaries_comitted: pieces.append('Summaries committed')
         
-        if pieces:        
+        if pieces:
             summary = ", ".join(pieces)
         else:
             summary = 'OK'
-            
+
         return summary
     
     def assemble_additional_information(self):

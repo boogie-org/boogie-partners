@@ -21,16 +21,15 @@
 # --------------------------------- :LICENSE ----------------------------------
 
 from aste.workers.workers import BuildWorker
-from aste.workers.mixins import ProjectWorkerMixin
 
-class SpecSharpWorker(BuildWorker, ProjectWorkerMixin):
+class SpecSharpWorker(BuildWorker):
     """
     Implements the steps necessary to build Spec#.
     """
 
     def __init__(self, env):
-        super(SpecSharpWorker, self).__init__(env)
-        self.project_setup('SpecSharp')
+        print "sscw env", env
+        super(SpecSharpWorker, self).__init__(env, 'SpecSharp')
 
     def registerSpecSharpLKG(self):
         self.cd(self.cfg.Paths.SpecSharp + "\Microsoft.SpecSharp\LastKnownGood9")
@@ -42,12 +41,13 @@ class SpecSharpWorker(BuildWorker, ProjectWorkerMixin):
         self.runSafely(cmd)
 
     def buildSpecSharp(self):
+        self.project_data['build']['started'] = True
+        
         self.cd(self.cfg.Paths.SpecSharp)
         cmd = "%s SpecSharp.sln /Build DebugCommandLine" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
         
-        self.project_build_success = True
-        self.project_tests_success = True # Vacously true :-)
+        self.project_data['build']['success'] = True
 
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
