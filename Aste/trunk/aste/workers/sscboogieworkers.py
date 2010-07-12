@@ -32,8 +32,6 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
         super(SscBoogieWorker, self).__init__(env, 'SscBoogie')
     
     def buildSscBoogie(self):
-        self.project_data['build']['started'] = True
-        
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")        
         cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
@@ -41,8 +39,6 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
         self.cd(self.cfg.Paths.SscBoogie + "\Source")
         cmd = "%s SscBoogie.sln /Build Debug" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
-        
-        self.project_data['build']['success'] = True
     
     def testSscBoogie(self):
         failed = self.runTestFromAlltestsFile(

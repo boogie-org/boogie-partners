@@ -366,7 +366,7 @@ class BuildWorker(MatchingWorker):
 
     matchers = {
         'general': [
-            (['warning CS\d+', 'NMAKE : fatal error .\d+:'], [accept], [str])
+            (['warning CS\d+', 'NMAKE : fatal error \w+:.*'], [accept], [str])
         ],
         'counting': [
             (
@@ -383,8 +383,10 @@ class BuildWorker(MatchingWorker):
             )
         ],        
         'envfatals': [
-            (['\d+>?(ERROR copying)'], [raiseNonBuildError], []),
             (
+                ['\d+>?(ERROR copying)'],
+                [raiseNonBuildError], [lambda match: match[0]]
+            ), (
                 ['The process cannot access the file because it is being used by another process'],
                 [raiseNonBuildError], [lambda match: match[0]]
             )

@@ -25,7 +25,7 @@
 """
 
 import aste.utils.misc
-from aste.aste import BuildError
+from aste.aste import BuildError, NonBuildError
 from aste.workers.svnworkers import CheckoutWorker, CommitSummaryWorker
 from aste.workers.specsharpworkers import SpecSharpWorker
 from aste.workers.boogieworkers import BoogieWorker
@@ -71,29 +71,43 @@ class AbstractBuildTask(Task):
         pass
     
     def run(self, **kwargs):
-        committer = CommitSummaryWorker(self.env, self.project)
-        exception = None
-
         try:
             self.build(**kwargs)
         except BuildError as exception:
+#            message = '%s build ' % self.project
+            
+#            if exception:
+#                message += 'failed'
+#            else:
+#                message += 'succeeded'
+            
+#            tests_failed = len(self.worker.project_data['tests']['failed'])
+#            if tests_failed != 0:
+#                message += ", %s test(s) failed" % tests_failed
+            
+#            committer = CommitSummaryWorker(self.env, self.project)
+#            if committer.commit_summary_if_changed(message=message):
+#                self.env.data['commits'].append(self.project)
+
             # Forward exception to the next layer (it should finally reach
             # run.py and trigger an error mail.
             raise
-        finally:
-            message = '%s build ' % self.project
-            
-            if exception:
-                message += 'failed'
-            else:
-                message += 'succeeded'
-            
-            tests_failed = len(self.worker.project_data['tests']['failed'])
-            if tests_failed != 0:
-                message += ", %s test(s) failed" % tests_failed
-            
-            if committer.commit_summary_if_changed(message=message):
-                self.env.data['commits'].append(self.project)
+
+    def commit_summary_if_changed(self, success):
+        message = '%s build ' % self.project
+        
+        if success:
+            message += 'failed'
+        else:
+            message += 'succeeded'
+        
+        tests_failed = len(self.worker.project_data['tests']['failed'])
+        if tests_failed != 0:
+            message += ", %s test(s) failed" % tests_failed
+        
+        committer = CommitSummaryWorker(self.env, self.project)
+        if committer.commit_summary_if_changed(message=message):
+            self.env.data['commits'].append(self.project)
 
     def upload_release(self, worker, revision=None):
         """
@@ -133,6 +147,8 @@ class SpecSharpTask(AbstractBuildTask):
     
     @errorhandling.add_context("Building Spec#")
     def build(self):
+        self.worker.project_data['build']['started'] = True
+
         self.worker.registerSpecSharpLKG()
         self.worker.buildSpecSharp()
 
@@ -140,6 +156,8 @@ class SpecSharpTask(AbstractBuildTask):
             self.worker.buildSpecSharpCheckinTests()
 
         self.worker.registerSpecSharpCompiler()
+
+        self.worker.project_data['build']['success'] = True
 
 class BoogieTask(AbstractBuildTask):    
     def __init__(self, env):
@@ -160,7 +178,9 @@ class BoogieTask(AbstractBuildTask):
     
     @errorhandling.add_context("Building Boogie")    
     def build(self):
+        self.worker.project_data['build']['started'] = True
         self.runBuild()
+        self.worker.project_data['build']['success'] = True
         
         if self.cfg.Flags.Tests:
             self.runTests()
@@ -175,15 +195,16 @@ class SscBoogieTask(AbstractBuildTask):
     
     @errorhandling.add_context("Building SscBoogie")
     def build(self): 
+        self.worker.project_data['build']['started'] = True        
         self.worker.buildSscBoogie()
+        self.worker.registerSscBoogie()
+        self.worker.project_data['build']['success'] = True        
         
         if self.cfg.Flags.Tests:
             self.worker.testSscBoogie()
 
             if self.cfg.Flags.UploadTheBuild:
                 self.upload_release(self.worker)
-
-        self.worker.registerSscBoogie()
         
 class FullBuild(Task):
     def run(self):

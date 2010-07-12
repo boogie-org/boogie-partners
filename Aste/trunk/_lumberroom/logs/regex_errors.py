@@ -1,6 +1,8 @@
 import re
+import pprint
 
-with open("verbose -- some errors.log") as fhin:
+#with open("verbose -- some errors.log") as fhin:
+with open("verbose -- NMAKE error.log") as fhin:
     text = fhin.read()
 
 #
@@ -23,7 +25,11 @@ pattern = r"""
 )$
 """
 
-matches = re.findall(pattern, text, re.VERBOSE | re.MULTILINE)
+#pattern = 'NMAKE : fatal error \w+:.*'
+
+matches = re.findall(pattern, text)
+
+
 
 for m in matches:
-    print m[0]
+    pprint.pprint(m)

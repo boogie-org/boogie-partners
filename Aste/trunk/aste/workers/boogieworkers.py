@@ -37,13 +37,9 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
         self.runSafely(cmd)
 
     def buildBoogie(self):
-        self.project_data['build']['started'] = True
-        
         self.cd(self.cfg.Paths.Boogie + "\Source")
         cmd = "%s Boogie.sln /Build Debug" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
-        
-        self.project_data['build']['success'] = True
 
     def buildDafny(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")

@@ -40,14 +40,10 @@ class SpecSharpWorker(BuildWorker):
         cmd = "Register.cmd RegisterLKG %s " % self.cfg.Apps.regasm
         self.runSafely(cmd)
 
-    def buildSpecSharp(self):
-        self.project_data['build']['started'] = True
-        
+    def buildSpecSharp(self):        
         self.cd(self.cfg.Paths.SpecSharp)
         cmd = "%s SpecSharp.sln /Build DebugCommandLine" % self.cfg.Apps.devenv
         self._runDefaultBuildStep(cmd)
-        
-        self.project_data['build']['success'] = True
 
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
