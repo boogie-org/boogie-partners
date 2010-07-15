@@ -52,7 +52,7 @@ def exc_handler(exceptions, handler, **handler_kwargs):
         def __call__(self, *args, **kwargs):
             try:
                 return self.func(*args, **kwargs)
-            except exceptions, ex:                
+            except exceptions, ex:
                 handler(ex, **handler_kwargs)
     
         def __get__(self, obj, type=None):

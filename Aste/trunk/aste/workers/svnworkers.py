@@ -100,8 +100,7 @@ class CheckoutWorker(SVNMixin, BaseWorker):
         self.noteSummary('SpecSharp revision: %s' % result['last_changed_revision'],
                          prefix='# ')
 
-    @errorhandling.exc_handler(AsteException, errorhandling.add_context,
-                               context="Checking out Boogie from CodePlex")
+    @errorhandling.add_context("Checking out Boogie from CodePlex")
     def getBoogie(self):
         """Downloads the Boogie sources from ``SVN.Boogie`` to
         ``Paths.Boogie``.
@@ -111,8 +110,7 @@ class CheckoutWorker(SVNMixin, BaseWorker):
         self.noteSummary('Boogie revision: %s' % result['last_changed_revision'],
                          prefix='# ')
         
-    @errorhandling.exc_handler(AsteException, errorhandling.add_context,
-                               context="Checking out SscBoogie from CodePlex")
+    @errorhandling.add_context("Checking out SscBoogie from CodePlex")
     def getSscBoogie(self):
         """Downloads the SscBoogie sources from ``SVN.SscBoogie`` to
         ``Paths.SscBoogie``.
