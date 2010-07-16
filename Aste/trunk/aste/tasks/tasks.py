@@ -92,6 +92,8 @@ class AbstractBuildTask(Task):
             # Forward exception to the next layer (it should finally reach
             # run.py and trigger an error mail.
             raise
+        finally:
+            self.commit_summary_if_changed(self.worker.project_data['build']['success'])
 
     def commit_summary_if_changed(self, success):
         message = '%s build ' % self.project
