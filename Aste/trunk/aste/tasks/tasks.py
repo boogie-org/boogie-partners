@@ -1,19 +1,19 @@
 # --------------------------------- LICENSE: ----------------------------------
 # The file is part of Aste (pronounced "S-T"), an automatic build tool
-# originally tailored towards Spec# and Boogie. 
-#  
+# originally tailored towards Spec# and Boogie.
+#
 # Copyright (C) 2010  Malte Schwerhoff
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
@@ -39,11 +39,11 @@ class Task(object):
 
     def __init__(self, env):
         self._env = env
-        
+
     @property
     def env(self):
-        return self._env    
-    
+        return self._env
+
     @property
     def cfg(self):
         return self.env.cfg
@@ -55,7 +55,7 @@ class CheckoutTask(Task):
 
         checkoutWorker.getSpecSharp()
         checkoutWorker.getBoogie()
-        
+
         if self.cfg.Flags.SscBoogie:
             checkoutWorker.getSscBoogie()
 
@@ -65,26 +65,26 @@ class AbstractBuildTask(Task):
     def __init__(self, env, buildWorker):
         super(AbstractBuildTask, self).__init__(env)
         self.worker = buildWorker
-    
+
     def build(self):
         """Abstract method"""
         pass
-    
+
     def run(self, **kwargs):
         try:
             self.build(**kwargs)
         except BuildError as exception:
 #            message = '%s build ' % self.project
-            
+
 #            if exception:
 #                message += 'failed'
 #            else:
 #                message += 'succeeded'
-            
+
 #            tests_failed = len(self.worker.project_data['tests']['failed'])
 #            if tests_failed != 0:
 #                message += ", %s test(s) failed" % tests_failed
-            
+
 #            committer = CommitSummaryWorker(self.env, self.project)
 #            if committer.commit_summary_if_changed(message=message):
 #                self.env.data['commits'].append(self.project)
@@ -97,16 +97,16 @@ class AbstractBuildTask(Task):
 
     def commit_summary_if_changed(self, success):
         message = '%s build ' % self.project
-        
+
         if success:
-            message += 'failed'
-        else:
             message += 'succeeded'
-        
+        else:
+            message += 'failed'
+
         tests_failed = len(self.worker.project_data['tests']['failed'])
         if tests_failed != 0:
             message += ", %s test(s) failed" % tests_failed
-        
+
         committer = CommitSummaryWorker(self.env, self.project)
         if committer.commit_summary_if_changed(message=message):
             self.env.data['commits'].append(self.project)
@@ -126,19 +126,19 @@ class AbstractBuildTask(Task):
 
         if revision == None:
             # CheckoutWorker key is only presented if this current run
-            # includes checking-out the sources, which might not be the case. 
+            # includes checking-out the sources, which might not be the case.
             if "CheckoutWorker" in self.env.data:
                 revision = self.env.data["CheckoutWorker"]['get' + self.project]['last_changed_revision']
             else:
                 revision = 0
-        
+
         # ATTENTION: worker must implement zip_binaries() as expected!
         worker.zip_binaries(filename)
         ReleaseUploader(self.env).upload_release(projectname, revision,
                                                  username, password, filename)
-        
+
         worker.noteSummary('Released nightly of %s' % self.project, prefix='# ')
-        
+
     @property
     def project(self):
         return self.worker.project
@@ -146,7 +146,7 @@ class AbstractBuildTask(Task):
 class SpecSharpTask(AbstractBuildTask):
     def __init__(self, env):
         super(SpecSharpTask, self).__init__(env, SpecSharpWorker(env))
-    
+
     @errorhandling.add_context("Building Spec#")
     def build(self):
         self.worker.project_data['build']['started'] = True
@@ -161,29 +161,29 @@ class SpecSharpTask(AbstractBuildTask):
 
         self.worker.project_data['build']['success'] = True
 
-class BoogieTask(AbstractBuildTask):    
+class BoogieTask(AbstractBuildTask):
     def __init__(self, env):
         super(BoogieTask, self).__init__(env, BoogieWorker(env))
-        
+
     def runBuild(self):
         """
         .. todo:: Move buildDafny() to a dedicated worker and task.
         """
         self.worker.copySpecSharpToBoogie()
         self.worker.buildBoogie()
-        
+
         if self.cfg.Flags.Dafny:
             self.worker.buildDafny()
-        
+
     def runTests(self):
         self.worker.testBoogie()
-    
-    @errorhandling.add_context("Building Boogie")    
+
+    @errorhandling.add_context("Building Boogie")
     def build(self):
         self.worker.project_data['build']['started'] = True
         self.runBuild()
         self.worker.project_data['build']['success'] = True
-        
+
         if self.cfg.Flags.Tests:
             self.runTests()
 
@@ -194,20 +194,20 @@ class BoogieTask(AbstractBuildTask):
 class SscBoogieTask(AbstractBuildTask):
     def __init__(self, env):
         super(SscBoogieTask, self).__init__(env, SscBoogieWorker(env))
-    
+
     @errorhandling.add_context("Building SscBoogie")
-    def build(self): 
-        self.worker.project_data['build']['started'] = True        
+    def build(self):
+        self.worker.project_data['build']['started'] = True
         self.worker.buildSscBoogie()
         self.worker.registerSscBoogie()
-        self.worker.project_data['build']['success'] = True        
-        
+        self.worker.project_data['build']['success'] = True
+
         if self.cfg.Flags.Tests:
             self.worker.testSscBoogie()
 
             if self.cfg.Flags.UploadTheBuild:
                 self.upload_release(self.worker)
-        
+
 class FullBuild(Task):
     def run(self):
         CheckoutTask(self.env).run()
@@ -228,7 +228,7 @@ class RecordTimings(Task):
         if len(self.env.data['timings']['timings']) > 0:
             worker = TimingsRecorder(self.env)
             worker.add(self.env.data['timings'])
-            
+
 
 class ExportTimingsCSV(Task):
     @errorhandling.add_context("Exporting test timings to a CSV file")
