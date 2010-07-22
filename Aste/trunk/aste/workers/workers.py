@@ -1,19 +1,19 @@
 # --------------------------------- LICENSE: ----------------------------------
 # The file is part of Aste (pronounced "S-T"), an automatic build tool
-# originally tailored towards Spec# and Boogie. 
-#  
+# originally tailored towards Spec# and Boogie.
+#
 # Copyright (C) 2010  Malte Schwerhoff
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
@@ -25,9 +25,9 @@
         Add sub-groups to the matchers that are invoked depending on the parent
         group, e.g. when an exception is raised or when a match passes all
         filters. This would allow to search for e.g.
-        
+
             Done building project "Microsoft.SpecSharp.csproj" -- FAILED.
-            
+
         when "\d+ failed" is matches.
 
 .. todo:: Move global function (accept, ...) into a class.
@@ -38,7 +38,7 @@
         Extract log() and note() and move them into the Environment.
         Currently, if a Task wants to log something, it either has to
         utilise a worker for that or use env.loggers, but that way the
-        output is not formatted as alike as the normal log entries. 
+        output is not formatted as alike as the normal log entries.
 """
 import sys
 import os
@@ -53,11 +53,11 @@ class BaseWorker(object):
     """Implements basic functionality common to all steps executed during the
     build process such as the execution of shell scripts and logging. The logger
     and the configuration to work with is taken from the environment ``env``.
-    """   
-    
+    """
+
     prefix = "\n\n"
     """Default prefix, used by :func:`note`"""
-    
+
     _env = None
     """The build environment."""
 
@@ -68,7 +68,7 @@ class BaseWorker(object):
     def cfg(self):
         """Configuration as provided by the environment."""
         return self.env.cfg
-    
+
     @property
     def env(self):
         """Configuration as provided by the environment."""
@@ -83,10 +83,10 @@ class BaseWorker(object):
         """Executes ``cmd`` in the current working directory and returns a
         dictionary with the ``returncode`` and the ``output``, i.e.
         the return code upon termination and the output written to stdout and stderr.
-        
+
         While the execution takes place, the output is continuously logged
         by the verbose logger via :func:`log`.
-        
+
         The ``shell`` parameter is passed to :class:`subprocess.Popen`.
         """
         output = ""
@@ -97,7 +97,7 @@ class BaseWorker(object):
         while line or proc.poll() is None:
             sys.stdout.flush()
             line = proc.stdout.readline().rstrip()
-            
+
             # print 'line = #%s#, retcode=#%s#, %s, %s' % (
                     # line, proc.returncode, line == '', proc.poll())
 
@@ -116,9 +116,9 @@ class BaseWorker(object):
         real command is not suited for logging, e.g. because it contains
         private information.
         """
-        
+
         if logcmd == None: logcmd = cmd
-        
+
         if note: self.note(logcmd)
         return self.sys(cmd, shell=shell)
 
@@ -126,7 +126,7 @@ class BaseWorker(object):
         """
         Executes ``cmd`` via :func:`run` and calls the observer function
         ``observer_func(cmd, returncode, output)`` if the return code is not
-        equal to zero. The ``**kwargs`` are forwarded to ``run``.        
+        equal to zero. The ``**kwargs`` are forwarded to ``run``.
         """
 
         result = self.run(cmd, **kwargs)
@@ -155,11 +155,11 @@ class BaseWorker(object):
         forwarded to ``abort``.
         """
         msg = "%s failed with return code %s" % (cmd, return_code)
-        
+
         kwargs['cmd'] = cmd
         kwargs['returncode'] = return_code
-        
-        self.abort(msg, kwargs)
+
+        self.abort(msg, **kwargs)
 
     def abort(self, message, context=None, exception_class=aste.BuildError,
               **kwargs):
@@ -168,19 +168,19 @@ class BaseWorker(object):
         containing the passed information ``message``, ``context`` and
         the ``kwargs`` as additional message values.
         The ``exception_class`` must be a subtype of :class:`AsteException`.
-        
+
         Moreover, the error is formatted by a :class:`AsteExceptionFormatter`
         and the output is passed to :func:`reportError`.
         """
 
         error = exception_class(message, context=context)
-        
+
         if kwargs:
             error.add_message_values(kwargs)
-        
-        logmsg = AsteExceptionFormatter().format(error)        
+
+        logmsg = AsteExceptionFormatter().format(error)
         self.reportError(logmsg)
-        
+
         self.env.data['status'] = aste.STATUS_ERROR
         self.env.data['error'] = error
 
@@ -193,10 +193,10 @@ class BaseWorker(object):
         """
 
         logmsg = "[%s] %s" % ("Error", message)
-        
+
         self.note(logmsg, logger=self.env._verbose)
         self.note(logmsg, prefix="", logger=self.env._summary)
-        
+
     def note(self, msg, prefix=None, **kwargs):
         """Prefixes ``msg`` with the current date and logs that via :func:`log`.
         If ``prefix != None`` then ``prefix`` is prepended to the string passed
@@ -216,31 +216,31 @@ class BaseWorker(object):
         """
         if logger == None: logger = self.env._verbose
         logger.info(msg, **kwargs)
-        
+
     def noteSummary(self, msg, **kwargs):
         """Notes ``msg`` to the summary logger using "" as the prefix, if none is
         explicitly given.
         """
         if 'prefix' not in kwargs: kwargs['prefix'] = ''
-        
+
         self.note(msg, logger=self.env._summary, **kwargs)
-        
+
     def logSummary(self, msg, **kwargs):
         """Logs ``msg`` to the summary logger.
         """
         self.log(msg, logger=self.env._summary, **kwargs)
- 
+
 
 class MatchingWorker(BaseWorker):
     """Extends a ``BaseWorker`` by general output matching functionalities."""
-    
+
     matchers = {}
     """A dictionary of match groups indexed by group name.
     Each group consists of a list of tuples, where each tuple consists of
     a name, a list of patterns, a list of filters and a
     list of formatters, e.g.::
-    
-        matchers = {            
+
+        matchers = {
             'general': [ # group name
                 ( # first tuple
                     ['warning CS\d+', 'NMAKE : fatal error .\d+:'], # patterns
@@ -249,13 +249,13 @@ class MatchingWorker(BaseWorker):
                 )
             ]
         }
-    
-    See :func:`matchNamedGroup` for information about how the matchers are used. 
+
+    See :func:`matchNamedGroup` for information about how the matchers are used.
     """
-    
+
     _errors = []
     """Collects BuildErrors raised during the execution of the output filters."""
-    
+
     _matches = []
 
     def matchNamedGroup(self, key, output):
@@ -264,20 +264,20 @@ class MatchingWorker(BaseWorker):
         returning the result.
         """
         group = self.matchers[key]
-        
+
         return self.matchGroup(group, output)
-        
+
     def matchGroup(self, group, output):
         """Matches the regular expressions in the matching ``group`` against the
         given ``output``.
-        
+
         Each matcher group is processed by subsequently processing
         each tuple in the group as follows:
-        
+
          - The tuple patterns are subsequently matched against a given output
            and the following steps are subsequently performed for each match
            resulting from a pattern:
-           
+
          - The match is passed to each filter. If a filter
 
              - returns ``True`` the match is passed on to the next filter
@@ -289,20 +289,20 @@ class MatchingWorker(BaseWorker):
              - raises a ``BuildError`` the match is accepted (and passed on
                to the next filter) and the error is stored in
                :attr:`self._errors` for later use
-           
+
          - If all filters accepted the match, it is subsequently passed to each
            formatter (as in a pipeline)
-           
+
          - The result of the formatter pipeline is finally appened to an
            output list and returned
         """
         out = [] # Accepted and formatted matches.
-        
+
         # Iterate over all patterns.
         for tup in group:
             for pattern in tup[0]:
                 matches = re.findall(pattern, output)
-                
+
                 self._matches += matches
 
                 # Iterate over all matches of the current pattern.
@@ -329,7 +329,7 @@ class MatchingWorker(BaseWorker):
                         out.append(m)
 
         return out
-    
+
 
 def accept(*args):
     """Always returns true, regardless of the arguments.
@@ -354,7 +354,7 @@ def raiseNonBuildError(match):
 class BuildWorker(MatchingWorker):
     __project = None
     __project_data = None
-    
+
     def __init__(self, env, project_name):
         print "env", env
         print "project_name", project_name
@@ -366,7 +366,7 @@ class BuildWorker(MatchingWorker):
 
     matchers = {
         'general': [
-            (['warning CS\d+', 'NMAKE : fatal error \w+:.*'], [accept], [str])
+            (['warning CS\d+', 'NMAKE : fatal error \w+:.*'], [accept], [str]) # TODO(wuestholz): Why should we accept a fatal error?
         ],
         'counting': [
             (
@@ -381,7 +381,7 @@ class BuildWorker(MatchingWorker):
                 # Formatter
                 [lambda match: "%s %s" % (match[1:3])]
             )
-        ],        
+        ],
         'envfatals': [
             (
                 ['\d+>?(ERROR copying)'],
@@ -414,7 +414,7 @@ class BuildWorker(MatchingWorker):
             )
         ]
     }
-            
+
     def _matchDefaults(self, output):
         """Matches the ``output`` with the matcher groups *general* and *counting*
         and returns the matches in a single list.
@@ -423,20 +423,20 @@ class BuildWorker(MatchingWorker):
         matches += self.matchNamedGroup('envfatals', output)
         matches += self.matchNamedGroup('general', output)
         matches += self.matchNamedGroup('counting', output)
-        
+
         return matches
 
     def _runDefaultBuildStep(self, cmd):
         """
         Runs ``cmd`` and matches the output via :func:`_matchDefaults`.
         All matches are logged by the summary log.
-        
+
         Returns a dictionary containing the ``resultcode`` and the ``output``
         of the executed command, as well as the ``matches`` found in the output.
-        
+
         If :attr:`~MatchingWorker._errors` contains any errors, this is reported
         via :func:`~BaseWorker.reportError` and a fresh BuildError is raised.
-        
+
         .. todo::
                 It should be possible to get the name of the step method that
                 (indirectly) called _matchDefaults. In case of an error the
@@ -449,26 +449,26 @@ class BuildWorker(MatchingWorker):
 
         if len(matches) > 0:
             msg = "\n"
-            msg += "\n".join(["    " + str(m) for m in matches])            
+            msg += "\n".join(["    " + str(m) for m in matches])
 
             if len(self._errors) > 0:
-                self.reportError(cmd)                
+                self.reportError(cmd)
                 self.logSummary(msg)
-                
+
                 error = aste.BuildError("Found build errors.", self._errors)
                 self.env.data['status'] = aste.STATUS_ERROR
                 self.env.data['error'] = error
-                                    
+
                 raise error
             else:
                 self.noteSummary(cmd)
                 self.logSummary(msg)
 
         result['matches'] = matches
-        
+
         return result
 
-    def __create_data_entry(self):        
+    def __create_data_entry(self):
         self.env.data['projects'][self.project] = {
             "build": {
                 "started": False,
@@ -481,7 +481,7 @@ class BuildWorker(MatchingWorker):
             },
             "data": ordereddict.OrderedDict()
         }
-            
+
         self.__project_data = self.env.data['projects'][self.project]
 
     @property
