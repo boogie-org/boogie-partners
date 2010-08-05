@@ -49,6 +49,7 @@ Apps: {
 	nmake: $Apps.VisualStudio + '\\VC\\bin\\nmake.exe'
 	svn: 'C:\\Program Files\\SlikSvn\\bin\\svn.exe'
 			# Any cli svn client, e.g. http://www.sliksvn.com/en/download
+	MSBuild: 'c:\\Windows\\Microsoft.NET\\Framework\\v3.5\\MSBuild.exe'
 }
 
 Logging: {
@@ -83,6 +84,14 @@ SVN: {
 	SpecSharp: 'https://specsharp.svn.codeplex.com/svn/SpecSharp'
 	Boogie: 'https://boogie.svn.codeplex.com/svn'
 	SscBoogie: 'https://specsharp.svn.codeplex.com/svn/SscBoogie'
+}
+
+VersionNumbers: {
+  Boogie: {
+    Major: 2
+    Minor: 0
+    YearZero: 2008
+  }
 }
 
 CommitSummary: {

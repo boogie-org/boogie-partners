@@ -23,6 +23,7 @@
 from aste.workers.workers import BuildWorker
 from aste.workers.mixins import TestRunnerMixin
 from shutil import make_archive
+from datetime import datetime
 import os
 
 
@@ -32,11 +33,29 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def __init__(self, env):
         super(BoogieWorker, self).__init__(env, 'Boogie')
+        
+    def set_version_number(self):
+        now = datetime.now()
+        
+        version = "%s.%s.%s%s.%s" % (self.cfg.VersionNumbers.Boogie.Major,
+                                  self.cfg.VersionNumbers.Boogie.Minor,
+                                  now.year - self.cfg.VersionNumbers.Boogie.YearZero, 
+                                  now.strftime('%m%d'),
+                                  now.strftime('%H%M'))
+        
+        self.cd(self.cfg.Paths.Boogie + "\Build")
+        cmd = "%s updateVersionFile.xml /p:CCNetLabel=%s" % (
+             self.cfg.Apps.MSBuild, version)
+        
+        self.runSafely(cmd)        
 
     def copySpecSharpToBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
-        cmd = "%s SPECSHARPROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.SpecSharp)
+        cmd = "%s SPECSHARPROOT=%s" % (self.cfg.Apps.nmake,
+                                       self.cfg.Paths.SpecSharp)
+        
         self.runSafely(cmd)
+
 
     def buildBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
@@ -57,7 +76,8 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
-        cmd = "%s zip SPECSHARPROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.SpecSharp)
+        cmd = "%s zip SPECSHARPROOT=%s" % (self.cfg.Apps.nmake,
+                                           self.cfg.Paths.SpecSharp)
         self.runSafely(cmd)
         # make_archive expects an archive name without a filename extension.
         archive_name = os.path.splitext(os.path.abspath(filename))[0]

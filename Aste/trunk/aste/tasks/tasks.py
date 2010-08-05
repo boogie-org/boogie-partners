@@ -25,7 +25,7 @@
 """
 
 import aste.utils.misc
-from aste.aste import BuildError, NonBuildError
+from aste.aste import BuildError
 from aste.workers.svnworkers import CheckoutWorker, CommitSummaryWorker
 from aste.workers.specsharpworkers import SpecSharpWorker
 from aste.workers.boogieworkers import BoogieWorker
@@ -170,6 +170,7 @@ class BoogieTask(AbstractBuildTask):
         .. todo:: Move buildDafny() to a dedicated worker and task.
         """
         self.worker.copySpecSharpToBoogie()
+        self.worker.set_version_number()
         self.worker.buildBoogie()
 
         if self.cfg.Flags.Dafny:
