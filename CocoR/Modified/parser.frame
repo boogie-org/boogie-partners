@@ -26,7 +26,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 ----------------------------------------------------------------------*/
 -->begin
 using System;
-using Microsoft.Contracts;
+using System.Diagnostics.Contracts;
 
 -->namespace
 
@@ -48,7 +48,7 @@ public class Parser {
 	public Parser(Scanner/*!*/ scanner, Errors/*!*/ errors) {
 		this.scanner = scanner;
 		this.errors = errors;
-		Token! tok = new Token();
+		Token/*!*/ tok = new Token();
 		tok.val = "";
 		this.la = tok;
 		this.t = new Token(); // just to satisfy its non-null constraint
@@ -59,12 +59,15 @@ public class Parser {
 		errDist = 0;
 	}
 
-	public void SemErr (string! msg) {
+	public void SemErr (string/*!*/ msg) {
+		Contract.Requires(msg != null);
 		if (errDist >= minErrDist) errors.SemErr(t, msg);
 		errDist = 0;
 	}
 	
-    public void SemErr(IToken! tok, string! msg) {
+    public void SemErr(IToken/*!*/ tok, string/*!*/ msg) {
+      Contract.Requires(tok != null);
+      Contract.Requires(msg != null);
 	  errors.SemErr(tok, msg);
 	}
 
@@ -120,7 +123,7 @@ public class Parser {
     Expect(0);
 	}
 	
-	static readonly bool[,]! set = {
+	static readonly bool[,]/*!*/ set = {
 -->initialization
 	};
 } // end Parser
@@ -128,10 +131,10 @@ public class Parser {
 
 public class Errors {
 	public int count = 0;                                    // number of errors detected
-	public System.IO.TextWriter! errorStream = Console.Out;   // error messages go to this stream
+	public System.IO.TextWriter/*!*/ errorStream = Console.Out;   // error messages go to this stream
 //  public string errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
-  public string! errMsgFormat4 = "{0}({1},{2}): Error: {3}"; // 0=line, 1=column, 2=text
-  public string! errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
+  public string/*!*/ errMsgFormat4 = "{0}({1},{2}): Error: {3}"; // 0=line, 1=column, 2=text
+  public string/*!*/ errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
   
 	public void SynErr (string filename, int line, int col, int n) {
 		string s;
@@ -145,12 +148,14 @@ public class Errors {
 		count++;
 	}
 
-	public void SemErr (int line, int col, string! s) {
+	public void SemErr (int line, int col, string/*!*/ s) {
+	  Contract.Requires(s != null);
 		errorStream.WriteLine(errMsgFormat, line, col, s);
 		count++;
 	}
 
-	public void SemErr (string filename, int line, int col, string! s) {
+	public void SemErr (string filename, int line, int col, string/*!*/ s) {
+	  Contract.Requires(s != null);
 		errorStream.WriteLine(errMsgFormat4, filename, line, col, s);
 		count++;
 	}
@@ -160,7 +165,9 @@ public class Errors {
 		count++;
 	}
 
-    public void SemErr(IToken! tok, string! msg) {  // semantic errors
+    public void SemErr(IToken/*!*/ tok, string/*!*/ msg) {  // semantic errors
+      Contract.Requires(tok != null);
+      Contract.Requires(msg != null);
       SemErr(tok.filename, tok.line, tok.col, msg);
     }
 	
