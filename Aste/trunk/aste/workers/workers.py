@@ -43,7 +43,7 @@
 import sys
 import os
 import re
-import ordereddict
+from collections import OrderedDict
 from subprocess import (Popen, PIPE, STDOUT)
 from datetime import datetime
 from aste.utils.reporting import AsteExceptionFormatter
@@ -479,7 +479,7 @@ class BuildWorker(MatchingWorker):
                 "succeeded": [],
                 "failed": []
             },
-            "data": ordereddict.OrderedDict()
+            "data": OrderedDict()
         }
 
         self.__project_data = self.env.data['projects'][self.project]

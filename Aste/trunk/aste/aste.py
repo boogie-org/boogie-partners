@@ -38,7 +38,7 @@ import logging.handlers
 from datetime import datetime
 from utils.asteconfig import ConvenientConfig as ConvenientConfigParser
 import utils.misc
-import ordereddict
+from collections import OrderedDict
 
 STATUS_OK = 0
 STATUS_ERROR = 100 
@@ -161,7 +161,7 @@ class Environment(object):
             'timings': {}
         },
         'commits': [],
-        'projects': ordereddict.OrderedDict()
+        'projects': OrderedDict()
     }
     """A dictionary storing arbitrary data produced while running Aste.
     

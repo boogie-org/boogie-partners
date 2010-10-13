@@ -51,7 +51,7 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def copySpecSharpToBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
-        cmd = "%s SPECSHARPROOT=%s" % (self.cfg.Apps.nmake,
+        cmd = "%s SPECSHARPROOT=%s" % (self.cfg.Apps.nmake2010,
                                        self.cfg.Paths.SpecSharp)
         
         self.runSafely(cmd)
@@ -59,12 +59,12 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def buildBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
-        cmd = "%s Boogie.sln /Build Debug" % self.cfg.Apps.devenv
+        cmd = "%s Boogie.sln /Build Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildDafny(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
-        cmd = "%s Dafny.sln /Build Debug" % self.cfg.Apps.devenv
+        cmd = "%s Dafny.sln /Build Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def testBoogie(self):
@@ -76,7 +76,7 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
-        cmd = "%s zip SPECSHARPROOT=%s" % (self.cfg.Apps.nmake,
+        cmd = "%s zip SPECSHARPROOT=%s" % (self.cfg.Apps.nmake2010,
                                            self.cfg.Paths.SpecSharp)
         self.runSafely(cmd)
         # make_archive expects an archive name without a filename extension.
