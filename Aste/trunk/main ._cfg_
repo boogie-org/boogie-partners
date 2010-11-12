@@ -1,19 +1,19 @@
 # --------------------------------- LICENSE: ----------------------------------
 # The file is part of Aste (pronounced "S-T"), an automatic build tool
-# originally tailored towards Spec# and Boogie. 
-#  
+# originally tailored towards Spec# and Boogie.
+#
 # Copyright (C) 2010  Malte Schwerhoff
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
@@ -25,7 +25,7 @@
 # http://www.red-dove.com/config-doc/.
 #
 
-HostId: 'CoPM Malte'
+HostId: 'Boogiebox'
 
 # Include private authentication information
 Auth: @"aste-auth.cfg"
@@ -34,8 +34,8 @@ Paths: {
 	# This section only contains the main source code paths. Several subdirectories
 	# are hard-coded in the Python script and used relative to these main paths.
 
-	Aste: 'C:\\scmalte\\Aste'
-	CheckoutRoot: 'C:\\Temp\\aste'
+	Aste: 'D:\\scmalte\\Aste'
+	CheckoutRoot: 'D:\\Temp\\aste'
 	SpecSharp: $Paths.CheckoutRoot + '\\SpecSharp'
 	Boogie: $Paths.CheckoutRoot + '\\Boogie'
 	SscBoogie: $Paths.CheckoutRoot + '\\SscBoogie'
@@ -43,20 +43,23 @@ Paths: {
 
 Apps: {
 	VisualStudio: 'C:\\Program Files (x86)\\Microsoft Visual Studio 9.0'
+	VisualStudio2010: 'C:\\Program Files (x86)\\Microsoft Visual Studio 10.0'
 	regasm: 'c:\\Windows\\Microsoft.NET\\Framework\\v2.0.50727\\RegAsm.exe'
 	devenv: $Apps.VisualStudio + '\\Common7\\IDE\\devenv.com'
 			# devenv.exe won't work!
+	devenv2010: $Apps.VisualStudio2010 + '\\Common7\\IDE\\devenv.com'
 	nmake: $Apps.VisualStudio + '\\VC\\bin\\nmake.exe'
+	nmake2010: $Apps.VisualStudio2010 + '\\VC\\bin\\nmake.exe'
 	svn: 'C:\\Program Files\\SlikSvn\\bin\\svn.exe'
 			# Any cli svn client, e.g. http://www.sliksvn.com/en/download
 	MSBuild: 'c:\\Windows\\Microsoft.NET\\Framework\\v3.5\\MSBuild.exe'
 }
 
 Logging: {
-  Root: 'C:\\Temp\\aste\\logs'
-  VerboseLog: $Logging.Root + '\\verbose.log'
-  SummaryLog: $Logging.Root + '\\summary.log'
-  Backups: 10000 # Keep the last n log files.
+    Root: 'D:\\scmalte\\Temp\\astelogs'
+    VerboseLog: $Logging.Root + '\\verbose.log'
+    SummaryLog: $Logging.Root + '\\summary.log'
+    Backups: 10000 # Keep the last n log files.
 }
 
 
@@ -69,18 +72,18 @@ Logging: {
 
 
 Flags: {
-  Tests: True           # Run tests?
+    Tests: True           # Run tests?
 	ShortTestsOnly: False # Omit long tests?
-	Stderr: True		      # Also log to stderr?
+	Stderr: True		  # Also log to stderr?
 	CheckinTests: False	  # Run the SpecSharp Checkin Tests? (requires Tests=True)
-	Dafny: True 		      # Include Dafny?
-	SscBoogie: True		    # Include SscBoogie?
+	Dafny: True 		  # Include Dafny?
+	SscBoogie: True		  # Include SscBoogie?
 	UploadTheBuild: True  # Should the build be uploaded to CodePlex?
-	UploadSummary: True 	# Upload the summary file?
+	UploadSummary: True   # Upload the summary file?
 }
 
-SVN: { 
-	Update: True # Update or clean checkout
+SVN: {
+	Update: False # Update or clean checkout
 	SpecSharp: 'https://specsharp.svn.codeplex.com/svn/SpecSharp'
 	Boogie: 'https://boogie.svn.codeplex.com/svn'
 	SscBoogie: 'https://specsharp.svn.codeplex.com/svn/SscBoogie'
@@ -101,7 +104,7 @@ CommitSummary: {
   #       it has changed.
   #
   #       ATTENTION: The url must already exist!
-  # 
+  #
   #   From: A path to which the To: directory will be checked-out to
   #         diff the summary in the repository against the current one, and
   #         from where the current summary will be comitted, if it changed.
@@ -111,29 +114,29 @@ CommitSummary: {
   #
   #   User: An SVN user that has the necessay rights to perform a comit.
   #
-  #   Password: The SVN user's password.  
+  #   Password: The SVN user's password.
   #
   #   ViewUrl: A link to the head revision of the summary to directly open
   #            it in a browser. Comment/remove to suppress it.
-  
+
   SpecSharp: {
-#    To: 'https://specsharp.svn.codeplex.com/svn/_admin/SpecSharp/aste'
-    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/SpecSharp/aste'
+    To: 'https://specsharp.svn.codeplex.com/svn/_admin/SpecSharp/aste'
+#    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/SpecSharp/aste'
     From: $Paths.CheckoutRoot + '\\summaries\\SpecSharp'
     User: $Auth.SVN.CommitSummary.User
     Password: $Auth.SVN.CommitSummary.Password
     ViewUrl: 'http://tinyurl.com/sscsummary'
   }
   Boogie: {
-#    To: 'https://boogie.svn.codeplex.com/svn/_admin/Boogie/aste'
-    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/Boogie/aste'
+    To: 'https://boogie.svn.codeplex.com/svn/_admin/Boogie/aste'
+#    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/Boogie/aste'
     From: $Paths.CheckoutRoot + '\\summaries\\Boogie'
     User: $Auth.SVN.CommitSummary.User
     Password: $Auth.SVN.CommitSummary.Password
   }
   SscBoogie: {
-#    To: 'https://specsharp.svn.codeplex.com/svn/_admin/SscBoogie/aste'
-    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/SscBoogie/aste'
+    To: 'https://specsharp.svn.codeplex.com/svn/_admin/SscBoogie/aste'
+#    To: 'https://sandkasten.svn.codeplex.com/svn/_admin/SscBoogie/aste'
     From: $Paths.CheckoutRoot + '\\summaries\\SscBoogie'
     User: $Auth.SVN.CommitSummary.User
     Password: $Auth.SVN.CommitSummary.Password
@@ -143,20 +146,20 @@ CommitSummary: {
 Nightlies: {
   SoapUrl: 'https://www.codeplex.com/Services/ReleaseService.asmx?WSDL'
   SpecSharp: {
-#    Project: 'specsharp'
-    Project: 'sandkasten'
+    Project: 'specsharp'
+#    Project: 'sandkasten'
     User: $Auth.CodePlex.Default.User
     Password: $Auth.CodePlex.Default.Password
  }
   Boogie: {
-#    Project: 'boogie'
-    Project: 'sandkasten'
+    Project: 'boogie'
+#    Project: 'sandkasten'
     User: $Auth.CodePlex.Default.User
     Password: $Auth.CodePlex.Default.Password
  }
   SscBoogie: {
-#    Project: 'specsharp'
-    Project: 'sandkasten'
+    Project: 'specsharp'
+#    Project: 'sandkasten'
     User: $Auth.CodePlex.Default.User
     Password: $Auth.CodePlex.Default.Password
   }
@@ -165,15 +168,15 @@ Nightlies: {
 Mail: {
 	Host: 'smtp.googlemail.com'
 	Port: 587
-	TLS: True	
+	TLS: True
 	User: $Auth.Mail.Default.User
 	Password: $Auth.Mail.Default.Password
-#	Recipients: [
-#	 'Malte Schwerhoff <mschwerhoff@student.ethz.ch>',
-#	 'Valentin Wüstholz <valentin.wuestholz@inf.ethz.ch>',
-#	 'Peter Müller <peter.mueller@inf.ethz.ch>'
-#	]
-  Recipients: ['Malte Schwerhoff <mschwerhoff@student.ethz.ch>']		
+	Recipients: [
+	 'Malte Schwerhoff <mschwerhoff@student.ethz.ch>',
+	 'Valentin Wüstholz <valentin.wuestholz@inf.ethz.ch>',
+	 'Peter Müller <peter.mueller@inf.ethz.ch>'
+	]
+#    Recipients: ['Malte Schwerhoff <mschwerhoff@student.ethz.ch>']
 	Sender: 'Astebot <astebot@gmail.com>'
 }
 
