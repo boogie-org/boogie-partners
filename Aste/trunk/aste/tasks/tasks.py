@@ -152,6 +152,11 @@ class SpecSharpTask(AbstractBuildTask):
         self.worker.project_data['build']['started'] = True
 
         self.worker.registerSpecSharpLKG()
+
+        self.worker.buildParserHelper()
+
+        self.worker.copyParserHelperToSpecSharp()
+
         self.worker.buildSpecSharp()
 
         if self.cfg.Flags.Tests and self.cfg.Flags.CheckinTests:
