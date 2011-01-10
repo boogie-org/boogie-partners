@@ -153,9 +153,9 @@ class SpecSharpTask(AbstractBuildTask):
 
         self.worker.registerSpecSharpLKG()
 
-        self.worker.buildParserHelper()
+        # self.worker.buildParserHelper()
 
-        self.worker.copyParserHelperToSpecSharp()
+        # self.worker.copyParserHelperToSpecSharp()
 
         self.worker.buildSpecSharp()
 
@@ -174,8 +174,11 @@ class BoogieTask(AbstractBuildTask):
         """
         .. todo:: Move buildDafny() to a dedicated worker and task.
         """
-        self.worker.copySpecSharpToBoogie()
+
+        # self.worker.copySpecSharpToBoogie()
+
         self.worker.set_version_number()
+
         self.worker.buildBoogie()
 
         if self.cfg.Flags.Dafny:
