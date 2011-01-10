@@ -76,8 +76,7 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.Boogie + "\Binaries")
-        cmd = "%s zip SPECSHARPROOT=%s" % (self.cfg.Apps.nmake2010,
-                                           self.cfg.Paths.SpecSharp)
+        cmd = "PrepareBoogieZip.bat"
         self.runSafely(cmd)
         # make_archive expects an archive name without a filename extension.
         archive_name = os.path.splitext(os.path.abspath(filename))[0]
