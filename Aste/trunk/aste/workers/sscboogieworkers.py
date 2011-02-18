@@ -39,7 +39,7 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
         self.runSafely(cmd)
 
         self.cd(self.cfg.Paths.SscBoogie + "\Source")
-        cmd = "%s SscBoogie.sln /Build Debug" % self.cfg.Apps.devenv
+        cmd = "%s SscBoogie10.sln /Build Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def testSscBoogie(self):

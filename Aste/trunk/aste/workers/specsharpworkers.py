@@ -32,7 +32,7 @@ class SpecSharpWorker(BuildWorker):
         super(SpecSharpWorker, self).__init__(env, 'SpecSharp')
 
     def registerSpecSharpLKG(self):
-        self.cd(self.cfg.Paths.SpecSharp + "\Microsoft.SpecSharp\LastKnownGood9")
+        self.cd(self.cfg.Paths.SpecSharp + "\Microsoft.SpecSharp\LastKnownGood10")
 
         cmd = "Register.cmd Clean %s " % self.cfg.Apps.regasm
         self.runSafely(cmd)
@@ -52,18 +52,18 @@ class SpecSharpWorker(BuildWorker):
 
     def buildSpecSharp(self):
         self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp.sln /Build DebugCommandLine" % self.cfg.Apps.devenv
+        cmd = "%s SpecSharp10.sln /Build DebugCommandLine" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
 
-        cmd = "%s SpecSharp.sln /Project \"Checkin Tests\" /Build" \
-                % self.cfg.Apps.devenv
+        cmd = "%s SpecSharp10.sln /Project \"Checkin Tests\" /Build" \
+                % self.cfg.Apps.devenv2010
 
         self._runDefaultBuildStep(cmd)
 
     def registerSpecSharpCompiler(self):
         self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp.sln /Build Debug" % self.cfg.Apps.devenv
+        cmd = "%s SpecSharp10.sln /Build Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
