@@ -52,18 +52,18 @@ class SpecSharpWorker(BuildWorker):
 
     def buildSpecSharp(self):
         self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp10.sln /Build DebugCommandLine" % self.cfg.Apps.devenv2010
+        cmd = "%s SpecSharp10.sln /Build Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
 
         cmd = "%s SpecSharp10.sln /Project \"Checkin Tests\" /Build" \
-                % self.cfg.Apps.devenv2010
+            % self.cfg.Apps.devenv2010
 
         self._runDefaultBuildStep(cmd)
 
     def registerSpecSharpCompiler(self):
-        self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp10.sln /Build Debug" % self.cfg.Apps.devenv2010
-        self._runDefaultBuildStep(cmd)
+        self.cd(self.cfg.Paths.SpecSharp + "\Registration")
+        cmd = "RegisterCurrent.cmd"
+        self.runSafely(cmd)
