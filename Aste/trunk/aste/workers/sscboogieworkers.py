@@ -35,7 +35,7 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
 
     def buildSscBoogie(self):
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")
-        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
+        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake2010, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
 
         self.cd(self.cfg.Paths.SscBoogie + "\Source")
@@ -51,12 +51,12 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
 
     def registerSscBoogie(self):
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")
-        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
+        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake2010, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
 
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")
-        cmd = "%s zip BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
+        cmd = "%s zip BOOGIEROOT=%s" % (self.cfg.Apps.nmake2010, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
         # make_archive expects an archive name without a filename extension.
         archive_name = os.path.splitext(os.path.abspath(filename))[0]

@@ -47,7 +47,7 @@ class SpecSharpWorker(BuildWorker):
 
     def copyParserHelperToSpecSharp(self):
         self.cd(self.cfg.Paths.SpecSharp + "\Binaries")
-        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake, self.cfg.Paths.Boogie)
+        cmd = "%s BOOGIEROOT=%s" % (self.cfg.Apps.nmake2010, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
 
     def buildSpecSharp(self):
@@ -65,5 +65,5 @@ class SpecSharpWorker(BuildWorker):
 
     def registerSpecSharpCompiler(self):
         self.cd(self.cfg.Paths.SpecSharp + "\Microsoft.SpecSharp\Registration")
-        cmd = "RegisterCurrent.cmd"
+        cmd = "cmd.exe /c \"call \"%s\VC\\vcvarsall.bat\" x86 & RegisterCurrent.cmd\"" % self.cfg.Apps.VisualStudio2010
         self.runSafely(cmd)
