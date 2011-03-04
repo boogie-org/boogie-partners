@@ -64,6 +64,6 @@ class SpecSharpWorker(BuildWorker):
         self._runDefaultBuildStep(cmd)
 
     def registerSpecSharpCompiler(self):
-        self.cd(self.cfg.Paths.SpecSharp + "\Registration")
+        self.cd(self.cfg.Paths.SpecSharp + "\Microsoft.SpecSharp\Registration")
         cmd = "RegisterCurrent.cmd"
         self.runSafely(cmd)
