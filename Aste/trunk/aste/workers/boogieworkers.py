@@ -59,7 +59,7 @@ class BoogieWorker(TestRunnerMixin, BuildWorker):
 
     def buildBoogie(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
-        cmd = "%s Boogie.sln /Build Debug" % self.cfg.Apps.devenv2010
+        cmd = "%s Boogie.sln /Build Checked" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildDafny(self):
