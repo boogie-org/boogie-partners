@@ -1,29 +1,30 @@
 # --------------------------------- LICENSE: ----------------------------------
 # The file is part of Aste (pronounced "S-T"), an automatic build tool
-# originally tailored towards Spec# and Boogie. 
-#  
+# originally tailored towards Spec# and Boogie.
+#
 # Copyright (C) 2010  Malte Schwerhoff
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
+
 """
 Aste start script. Initialises the required Aste environment
 (configuration, logger, etc.) and performs a given task.
-        
+
 .. todo::
         Make committing summary and other result-dependent operations
         depending on the task that was performed.
@@ -31,6 +32,8 @@ Aste start script. Initialises the required Aste environment
         summary that simply differs from the previous one because the task
         it reflects is a different one.
 """
+
+
 import sys
 import os
 
@@ -48,6 +51,7 @@ from aste.utils.misc import rot47
 from aste.tasks.tasks import RecordTimings
 import aste.utils.reporting as reporting
 
+
 # Return codes
 RC_OK = 0
 RC_WRONG_PARAMETER = 10
@@ -63,36 +67,37 @@ usage = """usage: %prog [options] <action> [action-args] [task-kwargs]
 Actions:
   start:\t\t\tExecutes the specified task (see --task)
   rot47 <str>:\t\tPrints <str> encoded as rot47
-""" 
+"""
 
 parser = OptionParser(usage=usage)
 
 parser.add_option("-c", "--config", dest="config", metavar="FILE",
-        default="main.cfg", help="Configuration file [default: %default]")
+                  default="main.cfg", help="Configuration file [default: %default]")
 
 parser.add_option("-t", "--task", dest="task",
-          default="aste.tasks.tasks.FullBuild", help="Task to execute [default: %default]")
+                  default="aste.tasks.tasks.FullBuild", help="Task to execute [default: %default]")
 
 parser.add_option("--no-file-logging", dest="noFileLogging", action="store_true",
-          default=False, help="Log to stdout only [default: %default]")
+                  default=False, help="Log to stdout only [default: %default]")
 
 options, args = parser.parse_args()
 
 if len(args) == 0:
     parser.print_help()
-    exit(RC_WRONG_PARAMETER)            # exit
+    exit(RC_WRONG_PARAMETER)
 
 if args[0].lower() == 'rot47':
     if len(args) != 2:
         parser.print_help()
-        exit(RC_WRONG_PARAMETER)        # exit
+        exit(RC_WRONG_PARAMETER)
     else:
         print rot47(args[1])
         exit(RC_OK)
 
 if args[0].lower() != 'start':
     parser.print_help()
-    exit(RC_WRONG_PARAMETER)            # exit
+    exit(RC_WRONG_PARAMETER)
+
 
 # Setting up the environment
 # ==========================
@@ -106,6 +111,7 @@ mail_status = ''
 mail_subject = ''
 mail_body = ''
 exception = None
+
 
 # Run the task
 # ============
@@ -124,11 +130,11 @@ for arg in args:
 
 try:
     task.run(**kwargs)
-    
+
     RecordTimings(env).run()
 except AsteException as err:
     trace = ""
-    
+
     # The BuildError stack trace currently doesn't contain any helpful
     # information, hence we skip it.
     if not isinstance(err, BuildError):
@@ -148,11 +154,11 @@ except Exception as err:
     exception = err
 finally:
     generator = reporting.BuildStatusReportGenerator(env)
-    
+
     mail_body = (generator.generate_report()
-                    + "\n" + "-" * 70 + "\n"
-                    + "\n" + mail_body
-                    + "\n" + generator.assemble_additional_information())
+                 + "\n" + "-" * 70 + "\n"
+                 + "\n" + mail_body
+                 + "\n" + generator.assemble_additional_information())
 
     mail_subject = generator.generate_report_summary(exception=exception)
 

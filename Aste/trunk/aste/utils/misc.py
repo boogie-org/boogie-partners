@@ -31,6 +31,7 @@ def rot47(string):
     """String encoding to / decoding from rot47. The code is taken from
     http://www.python-blog.com/2009/10/20/rot47-in-python/.
     """
+
     return ''.join([
             chr(33+((ord(c)-33+47) %(47*2))) if c != " " else " " for c in string
     ])

@@ -20,6 +20,7 @@
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
+
 from aste.workers.workers import BuildWorker
 from aste.workers.mixins import TestRunnerMixin
 from shutil import make_archive
@@ -58,6 +59,7 @@ class SscBoogieWorker(TestRunnerMixin, BuildWorker):
         self.cd(self.cfg.Paths.SscBoogie + "\Binaries")
         cmd = "%s zip BOOGIEROOT=%s" % (self.cfg.Apps.nmake2010, self.cfg.Paths.Boogie)
         self.runSafely(cmd)
+
         # make_archive expects an archive name without a filename extension.
         archive_name = os.path.splitext(os.path.abspath(filename))[0]
         root_dir = os.path.abspath("export")

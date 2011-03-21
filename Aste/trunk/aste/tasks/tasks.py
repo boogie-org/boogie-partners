@@ -20,9 +20,11 @@
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
+
 """
 .. todo:: Document this module.
 """
+
 
 import aste.utils.misc
 from aste.aste import BuildError
@@ -33,6 +35,7 @@ from aste.workers.sscboogieworkers import SscBoogieWorker
 from aste.workers.resultworkers import TimingsRecorder, ReleaseUploader
 from aste.workers.miscworkers import TimingsCSVExporter
 import aste.utils.errorhandling as errorhandling
+
 
 class Task(object):
     _env = None
@@ -74,21 +77,6 @@ class AbstractBuildTask(Task):
         try:
             self.build(**kwargs)
         except BuildError as exception:
-#            message = '%s build ' % self.project
-
-#            if exception:
-#                message += 'failed'
-#            else:
-#                message += 'succeeded'
-
-#            tests_failed = len(self.worker.project_data['tests']['failed'])
-#            if tests_failed != 0:
-#                message += ", %s test(s) failed" % tests_failed
-
-#            committer = CommitSummaryWorker(self.env, self.project)
-#            if committer.commit_summary_if_changed(message=message):
-#                self.env.data['commits'].append(self.project)
-
             # Forward exception to the next layer (it should finally reach
             # run.py and trigger an error mail.
             raise
@@ -143,6 +131,7 @@ class AbstractBuildTask(Task):
     def project(self):
         return self.worker.project
 
+
 class SpecSharpTask(AbstractBuildTask):
     def __init__(self, env):
         super(SpecSharpTask, self).__init__(env, SpecSharpWorker(env))
@@ -165,6 +154,7 @@ class SpecSharpTask(AbstractBuildTask):
         self.worker.registerSpecSharpCompiler()
 
         self.worker.project_data['build']['success'] = True
+
 
 class BoogieTask(AbstractBuildTask):
     def __init__(self, env):
@@ -217,6 +207,7 @@ class SscBoogieTask(AbstractBuildTask):
             if self.cfg.Flags.UploadTheBuild:
                 self.upload_release(self.worker)
 
+
 class FullBuild(Task):
     def run(self):
         CheckoutTask(self.env).run()
@@ -226,10 +217,12 @@ class FullBuild(Task):
         if self.cfg.Flags.SscBoogie:
             SscBoogieTask(self.env).run()
 
+
 class BuildOnly(FullBuild):
     def run(self):
         self.cfg.Flags.Tests = False
         super(BuildOnly, self).run()
+
 
 class RecordTimings(Task):
     @errorhandling.add_context("Recording test timings")

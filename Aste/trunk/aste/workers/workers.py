@@ -20,6 +20,7 @@
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
+
 """
 .. todo::
         Add sub-groups to the matchers that are invoked depending on the parent
@@ -40,6 +41,8 @@
         utilise a worker for that or use env.loggers, but that way the
         output is not formatted as alike as the normal log entries.
 """
+
+
 import sys
 import os
 import re
@@ -48,6 +51,7 @@ from subprocess import (Popen, PIPE, STDOUT)
 from datetime import datetime
 from aste.utils.reporting import AsteExceptionFormatter
 from aste import aste # Dangerous!
+
 
 class BaseWorker(object):
     """Implements basic functionality common to all steps executed during the
@@ -89,6 +93,7 @@ class BaseWorker(object):
 
         The ``shell`` parameter is passed to :class:`subprocess.Popen`.
         """
+
         output = ""
         proc = Popen(cmd, shell=shell, stdout=PIPE, stderr=STDOUT)
         line = 'not the empty string'
@@ -154,6 +159,7 @@ class BaseWorker(object):
         and ``return_code``. Both values are added to the ``kwargs`` and
         forwarded to ``abort``.
         """
+
         msg = "%s failed with return code %s" % (cmd, return_code)
 
         kwargs['cmd'] = cmd
@@ -202,7 +208,9 @@ class BaseWorker(object):
         If ``prefix != None`` then ``prefix`` is prepended to the string passed
         to ``log``. ``**kwargs`` are forwarded to ``log``.
         """
-        if prefix == None: prefix = self.prefix
+
+        if prefix == None:
+            prefix = self.prefix
 
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         msg = "%s[%s] %s" % (prefix, now, msg)
@@ -214,20 +222,25 @@ class BaseWorker(object):
         provided (default: the verbose logger).
         ``**kwargs`` are forwarded to ``info``.
         """
-        if logger == None: logger = self.env._verbose
+
+        if logger == None:
+            logger = self.env._verbose
         logger.info(msg, **kwargs)
 
     def noteSummary(self, msg, **kwargs):
         """Notes ``msg`` to the summary logger using "" as the prefix, if none is
         explicitly given.
         """
-        if 'prefix' not in kwargs: kwargs['prefix'] = ''
+
+        if 'prefix' not in kwargs:
+            kwargs['prefix'] = ''
 
         self.note(msg, logger=self.env._summary, **kwargs)
 
     def logSummary(self, msg, **kwargs):
         """Logs ``msg`` to the summary logger.
         """
+
         self.log(msg, logger=self.env._summary, **kwargs)
 
 
@@ -263,6 +276,7 @@ class MatchingWorker(BaseWorker):
         ``output`` by passing the corresponding group to :meth:`matchGroup` and
         returning the result.
         """
+
         group = self.matchers[key]
 
         return self.matchGroup(group, output)
@@ -296,7 +310,8 @@ class MatchingWorker(BaseWorker):
          - The result of the formatter pipeline is finally appened to an
            output list and returned
         """
-        out = [] # Accepted and formatted matches.
+
+        out = [] # Accepted and formatted matches
 
         # Iterate over all patterns.
         for tup in group:
@@ -334,22 +349,29 @@ class MatchingWorker(BaseWorker):
 def accept(*args):
     """Always returns true, regardless of the arguments.
     """
+
     return True
+
 
 def acceptIfNotZero(match):
     """Returns true if ``match`` is not equal to zero.
     """
+
     return int(match) != 0
+
 
 def abortIfSevere(match):
     """
     Raises a ``BuildError`` if ``match`` is either ``error`` or ``failed``.
     """
+
     if match in ['error', 'failed']:
         raise aste.BuildError("Aborted due to severe match: " + str(match))
 
+
 def raiseNonBuildError(match):
     raise aste.NonBuildError(str(match))
+
 
 class BuildWorker(MatchingWorker):
     __project = None
@@ -419,6 +441,7 @@ class BuildWorker(MatchingWorker):
         """Matches the ``output`` with the matcher groups *general* and *counting*
         and returns the matches in a single list.
         """
+
         matches = self.matchNamedGroup('msbuild-friendly', output)
         matches += self.matchNamedGroup('envfatals', output)
         matches += self.matchNamedGroup('general', output)
@@ -443,6 +466,7 @@ class BuildWorker(MatchingWorker):
                 caller name could then be added to the logs to facilitate
                 debugging.
         """
+
         result = self.run(cmd)
 
         matches = self._matchDefaults(result['output'])

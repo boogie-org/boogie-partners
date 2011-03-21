@@ -28,6 +28,7 @@ Configuration parser(s) used by Aste to read its configuration file.
 # aka 'HierConfig' http://wiki.python.org/moin/HierConfig
 import config
 
+
 class ConfigWrapper(object):
     """A wrapper partially mimicing the interface of
     :class:``ConfigParser.ConfigParser``.
@@ -39,6 +40,7 @@ class ConfigWrapper(object):
     file, so that changes made to the configuration are written back to the
     configuration file.
     """
+
     def read(self, filename, *params): pass
     """Reads a configuration from the file ``filename`` and processes it, such
     that :func:`asObject` can be called afterwards. `*params` can be any
@@ -52,6 +54,7 @@ class ConfigWrapper(object):
         if cfg.aCategory.anOption == 'yes' and cfg.isActivated:
             print cfg.bounds.max * 2
     """
+
 
 class ConvenientConfig(ConfigWrapper):
     """, but internally using the ``config`` module found

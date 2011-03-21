@@ -20,7 +20,9 @@
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
+
 from aste.workers.workers import BuildWorker
+
 
 class SpecSharpWorker(BuildWorker):
     """
@@ -28,7 +30,6 @@ class SpecSharpWorker(BuildWorker):
     """
 
     def __init__(self, env):
-        print "sscw env", env
         super(SpecSharpWorker, self).__init__(env, 'SpecSharp')
 
     def registerSpecSharpLKG(self):
@@ -58,8 +59,7 @@ class SpecSharpWorker(BuildWorker):
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
 
-        cmd = "%s SpecSharp10.sln /Project \"Checkin Tests\" /Build" \
-            % self.cfg.Apps.devenv2010
+        cmd = "%s SpecSharp10.sln /Project \"Checkin Tests\" /Build" % self.cfg.Apps.devenv2010
 
         self._runDefaultBuildStep(cmd)
 
