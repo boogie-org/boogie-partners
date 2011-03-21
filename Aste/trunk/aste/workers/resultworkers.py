@@ -26,9 +26,8 @@ import datetime
 import re
 import os
 import aste.utils.mail as mail
-import aste.utils.misc as misc
+from aste.utils.misc import ensure_directories_exist, rot47
 from aste.workers.workers import BaseWorker
-from aste.utils.misc import rot47
 from suds.client import Client
 from suds import WebFault
 
@@ -129,7 +128,7 @@ class TimingsRecorder(BaseWorker):
         self._record(records, self.cfg.Timings.JSON)
 
     def _record(self, records, filename):
-        misc.ensure_directories_exist(filename, with_filename=True)
+        ensure_directories_exist(filename, with_filename=True)
 
         with open(filename, 'w') as fh:
             json.dump(records, fh, sort_keys=True, check_circular=False,

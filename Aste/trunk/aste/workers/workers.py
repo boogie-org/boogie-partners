@@ -378,8 +378,7 @@ class BuildWorker(MatchingWorker):
     __project_data = None
 
     def __init__(self, env, project_name):
-        print "env", env
-        print "project_name", project_name
+        print "project name:", project_name
 
         super(BuildWorker, self).__init__(env)
 
@@ -388,7 +387,7 @@ class BuildWorker(MatchingWorker):
 
     matchers = {
         'general': [
-            (['warning CS\d+', 'NMAKE : fatal error \w+:.*'], [accept], [str]) # TODO(wuestholz): Why should we accept a fatal error?
+            (['warning \w+: .*', 'NMAKE : fatal error \w+: .*'], [accept], [str]) # TODO(wuestholz): Why should we accept a fatal error?
         ],
         'counting': [
             (

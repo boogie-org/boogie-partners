@@ -87,9 +87,12 @@ class CheckoutWorker(SVNMixin, BaseWorker):
         """Downloads the Spec# sources from ``SVN.SpecSharp`` to
         ``Paths.SpecSharp``.
         """
-        result = self._getSvnSource(self.cfg.SVN.SpecSharp, self.cfg.Paths.SpecSharp)
+        result = self._getSvnSource(self.cfg.SVN.SpecSharp, os.path.split(self.cfg.Paths.SpecSharp)[0])
         self.env.data[self.DID]['getSpecSharp'] = result
+        self.env.data[self.DID]['getSscBoogie'] = result
         self.noteSummary('SpecSharp revision: %s' % result['last_changed_revision'],
+                         prefix='# ')
+        self.noteSummary('SscBoogie revision: %s' % result['last_changed_revision'],
                          prefix='# ')
 
     @errorhandling.add_context("Checking out Boogie from CodePlex")
@@ -102,34 +105,26 @@ class CheckoutWorker(SVNMixin, BaseWorker):
         self.noteSummary('Boogie revision: %s' % result['last_changed_revision'],
                          prefix='# ')
 
-    @errorhandling.add_context("Checking out SscBoogie from CodePlex")
-    def getSscBoogie(self):
-        """Downloads the SscBoogie sources from ``SVN.SscBoogie`` to
-        ``Paths.SscBoogie``.
-        """
-        result = self._getSvnSource(self.cfg.SVN.SscBoogie, self.cfg.Paths.SscBoogie)
-        self.env.data[self.DID]['getSscBoogie'] = result
-        self.noteSummary('SscBoogie revision: %s' % result['last_changed_revision'],
-                         prefix='# ')
-
 
 class CommitSummaryWorker(SVNMixin, BaseWorker):
     """
     ..todo:: Couple with the date format used by the logger.
     """
+
     ignorePattern = re.compile('''
             \[\d{4}-\d{2}-\d{2}\ \d{2}:\d{2}:\d{2}\]
                 |
             ^\#.*
         ''', re.VERBOSE) #  | re.MULTILINE
 
-    default_commit_message = "[Aste] Committing summary due to changes."
+    default_commit_message = "Committing summary"
 
     summary_current = ''
+
     summary_checkout_dir = ''
+
     summary_checkout_file = ''
-    summary_repo_dir = ''
-    summary_repo_file = ''
+
     project = ''
 
     def __init__(self, env, project):
@@ -145,12 +140,7 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
 
         self.summary_current = self.cfg.Logging.SummaryLog
 
-        self.summary_repo_dir = self.cfg.CommitSummary[project].To
-        self.summary_repo_file = "%s/%s" % (
-            self.cfg.CommitSummary[project].To,
-            os.path.basename(self.summary_current))
-
-        self.summary_checkout_dir = self.cfg.CommitSummary[project].From
+        self.summary_checkout_dir = self.cfg.CommitSummary[project].Dir
         self.summary_checkout_file = os.path.join(
             self.summary_checkout_dir, os.path.basename(self.summary_current))
 
@@ -172,20 +162,8 @@ class CommitSummaryWorker(SVNMixin, BaseWorker):
         return committed
 
     def hasStatusChanged(self):
-        # Remove the local folder that contains the checkout of the repo
-        # summary, if existing.
-        if os.path.exists(self.summary_checkout_dir):
-            cmd = "rmdir /s/q %s" % self.summary_checkout_dir
-            self.run(cmd, shell=True)
-
         # (Re-)create that folder.
         ensure_directories_exist(self.summary_checkout_dir)
-
-
-        # Checkout the repo summary.
-        self.svn_checkout(self.summary_repo_dir, self.summary_checkout_dir,
-                          user=self.cfg.CommitSummary[self.project].User,
-                          password=self.cfg.CommitSummary[self.project].Password)
 
         differs = True
 

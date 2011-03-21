@@ -59,8 +59,6 @@ class CheckoutTask(Task):
         checkoutWorker.getSpecSharp()
         checkoutWorker.getBoogie()
 
-        if self.cfg.Flags.SscBoogie:
-            checkoutWorker.getSscBoogie()
 
 class AbstractBuildTask(Task):
     """Abstract class"""

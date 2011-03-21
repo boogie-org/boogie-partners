@@ -32,7 +32,7 @@ import logging
 import logging.handlers
 from datetime import datetime
 from utils.asteconfig import ConvenientConfig as ConvenientConfigParser
-import utils.misc
+from utils.misc import ensure_directories_exist
 from collections import OrderedDict
 
 STATUS_OK = 0
@@ -209,9 +209,9 @@ class Environment(object):
             # is not the safest way of disabling the summary logger.
             summaryLogger = Fake()
         else:
-            utils.misc.ensure_directories_exist(self.cfg.Logging.VerboseLog,
+            ensure_directories_exist(self.cfg.Logging.VerboseLog,
                                                 with_filename=True)
-            utils.misc.ensure_directories_exist(self.cfg.Logging.SummaryLog,
+            ensure_directories_exist(self.cfg.Logging.SummaryLog,
                                                 with_filename=True)
 
             # Have the verbose logger also log to a rotating file.
