@@ -17,9 +17,9 @@ BuildOnly
    .. automethods::
    .. autoproperties::
 
-BuildTask
-~~~~~~~~~
-.. kaaclass:: aste.tasks.tasks.BuildTask
+AbstractBuildTask
+~~~~~~~~~~~~~~~~~
+.. kaaclass:: aste.tasks.tasks.AbstractBuildTask
    :synopsis:
    
    .. automethods::
