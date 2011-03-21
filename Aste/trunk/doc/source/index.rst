@@ -3,18 +3,18 @@
 Aste is the *Automated Spec# Testing Environment*.
 
 Contents
-======================
+========
 
 .. toctree::
-		:maxdepth: 1
+        :maxdepth: 1
 
-		modules/index
+        modules/index
 
-		requirements
-		howto
-		notes
-		todo
-		checkintests
+        requirements
+        howto
+        notes
+        todo
+        checkintests
 
 Indices and tables
 ==================

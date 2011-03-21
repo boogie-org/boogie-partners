@@ -1,7 +1,7 @@
 .. _notes:
 
 Notes
-====================
+=====
 
 * ``z3.exe`` must either be in the path or it must be copied to the checkout
   folders ``Boogie\Binaries`` and ``SscBoogie\Binaries``.
@@ -14,14 +14,14 @@ Notes
   erroneous situation, e.g. after
   - setting the environment fields ``status`` and ``error`` to appropriate values
   - logging the error
-  
+
   If a BuildError is raised without actually handling the situation, it should
   be caught (and probably re-raised afterwards) in the same class.
 
 * A ``NonBuildError`` should be raised to indicate that an exception occurred
   that is (mostly likely) unrelated to the software that currently is being
   build.
-  
+
   Hence, NonBuildErrors should suppress summary file commits and they should
   eventually reach ``run.py`` where they trigger an error mail.
 
@@ -44,9 +44,9 @@ Notes
 
   I did not get similiar errors when manually starting the scheduled task from
   the command-line via ``schtasks /Run /TN <taskname>``.
-	
+
 Dev Links
-------------
+---------
 
 - http://www.red-dove.com/config-doc/
 - http://docs.python.org/library/email-examples.html

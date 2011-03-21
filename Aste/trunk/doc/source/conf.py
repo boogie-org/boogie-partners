@@ -215,16 +215,16 @@ autodoc_member_order = 'groupwise'
 #autosummary_generate = True
 
 def skip_underscore(app, what, name, obj, skip, options):
-#	Conditionally include docstrings for objects whose names begin
-#	with an underscore ('_').
-# 	if 'SAGE_DOC_UNDERSCORE' in os.environ:
-	excludes = ['__weakref__', '__init__']
-	if True:
-		name = name.split('.')[-1]
-		if name.startswith('_') and name not in excludes:
-			return False
+    # Conditionally include docstrings for objects whose names begin
+    # with an underscore ('_').
+    # if 'SAGE_DOC_UNDERSCORE' in os.environ:
+    excludes = ['__weakref__', '__init__']
+    if True:
+        name = name.split('.')[-1]
+        if name.startswith('_') and name not in excludes:
+            return False
 
-	return skip 
+    return skip
 
 def setup(app):
-	app.connect('autodoc-skip-member', skip_underscore)
+    app.connect('autodoc-skip-member', skip_underscore)

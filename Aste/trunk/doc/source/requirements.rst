@@ -1,7 +1,7 @@
 .. _requirements:
 
 Requirements
-====================
+============
 
 - Visual Studio 2008 with C# support
 
@@ -9,8 +9,8 @@ Requirements
 
 - A command-line SVN client, e.g.
 
-		* http://alagazam.net/
-		* http://www.sliksvn.com/en/download
+  * http://alagazam.net/
+  * http://www.sliksvn.com/en/download
 
 - The ``config`` module from http://www.red-dove.com/config-doc/
 
