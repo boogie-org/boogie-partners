@@ -213,7 +213,7 @@ class ReleaseUploader(BaseWorker):
 
         # Set the link text of the download.
         if remote_linktext == None:
-            release_file.Name = "{0}_rev{1:d}_{2}{3}".format(
+            release_file.Name = "{0}_rev{1}_{2}{3}".format(
                 basename, revision_number, release_date, ext).encode("utf-8")
         else:
             release_file.Name = remote_linktext
