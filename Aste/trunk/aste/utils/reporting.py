@@ -181,6 +181,6 @@ class BuildStatusReportGenerator(object):
 
     def __append_revision_if_set(self, text, project):
         if 'CheckoutWorker' in self.__env.data:
-            text += " r" + str(self.__env.data['CheckoutWorker']['get' + project]['last_changed_revision'])
+            text += " r" + self.__env.data['CheckoutWorker']['get' + project]['last_changed_revision']
 
         return text

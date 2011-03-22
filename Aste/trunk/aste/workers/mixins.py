@@ -198,12 +198,12 @@ class SVNMixin(workers.BaseWorker):
         revision = re.search('^Revision: (\d+)',
                              result['output'],
                              re.MULTILINE).group(1)
-        revision = int(revision)
+        revision = revision
 
         last_changed_revision = re.search('^Last Changed Rev: (\d+)',
                                           result['output'],
                                           re.MULTILINE).group(1)
-        last_changed_revision = int(last_changed_revision)
+        last_changed_revision = last_changed_revision
 
         return {
             'revision': revision,
@@ -229,3 +229,111 @@ class SVNMixin(workers.BaseWorker):
 
         return self._run_svn(arg, auth=auth, user=user, password=password,
                              abort=abort)
+
+
+class MercurialMixin(workers.BaseWorker):
+    """
+    A mixin for :class:`aste.workers.workers.BaseWorker` that adds the
+    functionality to interact with Mercurial repositories.
+    """
+
+    __user = ""
+    __password = ""
+
+    def set_default_auth(self, user, password):
+        """
+        The ``password`` is expected to be rot47ed.
+        """
+
+        self.__user = user
+        self.__password = aste.utils.misc.rot47(password)
+
+    def _insert_credentials(self, url, username, password):
+        return url.replace("https://", "%s%s:%s@" % ("https://", username, password))
+
+    def _run_hg(self, arg, logarg=None, abort=True):
+        """
+        .. todo:: Remove the abort-flag, we should play it safe and always
+                  abort. If there are cases where a non-zero returncode
+                  does not indicate an abort-worthy error, we should rather
+                  pass an abort-detection function.
+        """
+
+        cmd = "%s %s" % (self.cfg.Apps.hg, arg)
+        if logarg == None:
+            logarg = arg
+        logcmd = "%s %s" % (self.cfg.Apps.hg, logarg)
+
+        result = self.run(cmd, logcmd=logcmd)
+
+        if abort and result['returncode'] != 0:
+            msg = "HG action failed"
+            self.abort(msg, command=logcmd, returncode=result['returncode'],
+                       output=result['output'], exception_class=NonBuildError)
+
+        return result
+
+    def hg_ensure_version_controlled(self, path, abort=True):
+        """
+        Ensures that ``path`` is under version control.
+        **Note**: This will fail if more than the last part of ``path`` are
+        not yet under version control!
+        """
+
+        result = self._run_hg('status ' + path, abort=abort)
+
+        if result['output'].startswith('?'):
+            # HG does not know about the path, hence we have to add it
+            # to the repository.
+            result = self._run_hg('add ' + path, abort=abort)
+
+    def hg_update(self, abort=True):
+
+        return self._run_hg("update", abort=abort)
+
+    def hg_revert(self, path, abort=True):
+
+        return self._run_hg('revert ' + path, abort=abort)
+
+    def hg_get_revision_numbers(self, abort=True):
+        """
+        Returns the 'revision' and the 'last changed revision' number by
+        matching the the output of ``hg id -i``.
+        """
+
+        result = self._run_hg('id -i', abort=abort)
+
+        revision = result['output'].strip()
+
+        return {
+            'revision': revision,
+            'last_changed_revision': revision
+        }
+
+    def hg_checkout(self, url, localdir, abort=True):
+
+        arg = 'clone %s %s' % (self._insert_credentials(url, self.__user, self.__password), localdir)
+        logarg = 'clone %s %s' % (self._insert_credentials(url, self.__user, "********"), localdir)
+
+        return self._run_hg(arg, logarg=logarg, abort=abort)
+
+    def hg_commit(self, path, msg, abort=True):
+        """
+        Commits the ``path``, which must already be under version control.
+        The ``password`` is expected to be rot47ed.
+        """
+
+        arg = 'commit --message "%s" --user "CodeplexBot" %s' % (msg, path)
+
+        return self._run_hg(arg, abort=abort)
+
+    def hg_push(self, url, abort=True):
+        """
+        Push to the repository under ``url``.
+        The ``password`` is expected to be rot47ed.
+        """
+
+        arg = 'push ' # + self._insert_credentials(url, self.__user, self.__password)
+        logarg = 'push ' # + self._insert_credentials(url, self.__user, "********")
+
+        return self._run_hg(arg, logarg=logarg, abort=abort)

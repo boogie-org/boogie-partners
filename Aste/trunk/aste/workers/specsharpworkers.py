@@ -43,7 +43,7 @@ class SpecSharpWorker(BuildWorker):
 
     def buildParserHelper(self):
         self.cd(self.cfg.Paths.Boogie + "\Source")
-        cmd = "%s Boogie.sln /Project \"ParserHelper\" /Build" % self.cfg.Apps.devenv2010
+        cmd = "%s Boogie.sln /Project \"ParserHelper\" /Rebuild" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def copyParserHelperToSpecSharp(self):
@@ -53,7 +53,7 @@ class SpecSharpWorker(BuildWorker):
 
     def buildSpecSharp(self):
         self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp10.sln /Build Debug" % self.cfg.Apps.devenv2010
+        cmd = "%s SpecSharp10.sln /Rebuild Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildSpecSharpCheckinTests(self):

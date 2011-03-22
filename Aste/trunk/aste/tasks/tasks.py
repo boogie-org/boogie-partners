@@ -93,7 +93,14 @@ class AbstractBuildTask(Task):
         if tests_failed != 0:
             message += ", %s test(s) failed" % tests_failed
 
-        committer = CommitSummaryWorker(self.env, self.project)
+
+        VCS = "SVN"
+        url = None
+        if self.project in self.cfg.HG:
+            VCS = "HG"
+            url = self.cfg.HG[self.project]
+
+        committer = CommitSummaryWorker(self.env, self.project, VCS, url)
         if committer.commit_summary_if_changed(message=message):
             self.env.data['commits'].append(self.project)
 

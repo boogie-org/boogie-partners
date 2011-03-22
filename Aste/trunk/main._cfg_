@@ -52,6 +52,7 @@ Apps: {
     nmake2010: $Apps.VisualStudio2010 + '\\VC\\bin\\nmake.exe'
     svn: 'C:\\Program Files\\SlikSvn\\bin\\svn.exe'
          # Any cli svn client, e.g. http://www.sliksvn.com/en/download
+    hg: 'C:\\Program Files\\Mercurial\\hg.exe'
     MSBuild: 'c:\\Windows\\Microsoft.NET\\Framework\\v3.5\\MSBuild.exe'
 }
 
@@ -83,8 +84,15 @@ Flags: {
 
 SVN: {
     Update: False    # Update or clean checkout
-    SpecSharp: 'https://specsharp.svn.codeplex.com/svn'
+    # SpecSharp: 'https://specsharp.svn.codeplex.com/svn'
     Boogie: 'https://boogie.svn.codeplex.com/svn'
+}
+
+HG: {
+    Update: False    # Update or clean checkout
+    SpecSharp: 'https://hg01.codeplex.com/specsharp'
+    SscBoogie: 'https://hg01.codeplex.com/specsharp'
+    # Boogie: 'https://hg01.codeplex.com/boogie'
 }
 
 VersionNumbers: {
