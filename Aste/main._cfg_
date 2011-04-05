@@ -34,7 +34,7 @@ Paths: {
     # This section only contains the main source code paths. Several subdirectories are
     # hard-coded in the Python script and used relative to these main paths.
 
-    Aste: 'D:\\wuesthov\\Aste'
+    Aste: 'D:\\wuesthov\\boogiepartners\Aste'
     CheckoutRoot: 'D:\\Temp\\aste'
     SpecSharp: $Paths.CheckoutRoot + '\\SpecSharp\\SpecSharp'
     Boogie: $Paths.CheckoutRoot + '\\Boogie'
