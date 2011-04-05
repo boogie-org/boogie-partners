@@ -85,14 +85,14 @@ Flags: {
 SVN: {
     Update: False    # Update or clean checkout
     # SpecSharp: 'https://specsharp.svn.codeplex.com/svn'
-    Boogie: 'https://boogie.svn.codeplex.com/svn'
+    # Boogie: 'https://boogie.svn.codeplex.com/svn'
 }
 
 HG: {
     Update: False    # Update or clean checkout
     SpecSharp: 'https://hg01.codeplex.com/specsharp'
     SscBoogie: 'https://hg01.codeplex.com/specsharp'
-    # Boogie: 'https://hg01.codeplex.com/boogie'
+    Boogie: 'https://hg01.codeplex.com/boogie'
 }
 
 VersionNumbers: {
@@ -164,7 +164,7 @@ Mail: {
         'Valentin Wüstholz <valentin.wuestholz@inf.ethz.ch>',
         'Peter Müller <peter.mueller@inf.ethz.ch>'
     ]
-    # Recipients: ['Malte Schwerhoff <mschwerhoff@student.ethz.ch>']
+    # Recipients: ['Valentin Wüstholz <valentin.wuestholz@inf.ethz.ch>']
     Sender: 'Astebot <astebot@gmail.com>'
 }
 

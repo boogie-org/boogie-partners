@@ -130,7 +130,7 @@ class CheckoutWorker(MercurialMixin, SVNMixin, BaseWorker):
         """Downloads the Boogie sources from ``SVN.Boogie`` to
         ``Paths.Boogie``.
         """
-        result = self._getSvnSource(self.cfg.SVN.Boogie, self.cfg.Paths.Boogie, self.cfg.SVN.Update)
+        result = self._getHgSource(self.cfg.HG.Boogie, self.cfg.Paths.Boogie, "Boogie", self.cfg.HG.Update)
         self.env.data[self.DID]['getBoogie'] = result
         self.noteSummary('Boogie revision: %s' % result['last_changed_revision'],
                          prefix='# ')
