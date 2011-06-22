@@ -138,9 +138,9 @@ For detail, see `comment-dwim'."
     (compile command)))
 
 
-;; Define several class of keywords.
+;; Define several classes of keywords.
 (defvar boogiepl-keywords
-  '("type" "const" "function" "returns" "axiom" "var" "procedure" "requires" "modifies" "ensures" "implementation" "goto" "return" "assert" "assume" "havoc" "call" "call forall" "finite" "unique" "free" "invariant" "if" "else" "while" "complete" "break" "where" "extends")
+  '("type" "const" "function" "returns" "axiom" "var" "procedure" "requires" "modifies" "ensures" "implementation" "goto" "return" "assert" "assume" "havoc" "call" "finite" "unique" "free" "invariant" "if" "else" "then" "while" "complete" "break" "where" "extends" "lambda" "cast")
   "BoogiePL keywords")
 
 (defvar boogiepl-types
@@ -161,9 +161,9 @@ For detail, see `comment-dwim'."
 
 ;; Create the regex string for each class of keywords.
 (defvar boogiepl-keywords-regexp (regexp-opt boogiepl-keywords 'words))
-;; (defvar boogiepl-type-regexp (regexp-opt boogiepl-types 'words))
-(defvar boogiepl-type-regexp "\\<\\(b\\(?:ool\\|v[0-9]+\\)\\|int\\|ref\\)\\>")
-(defvar boogiepl-constant-regexp (regexp-opt boogiepl-constants 'words))
+;; (defvar boogiepl-types-regexp (regexp-opt boogiepl-types 'words))
+(defvar boogiepl-types-regexp "\\<\\(b\\(?:ool\\|v[0-9]+\\)\\|int\\|ref\\)\\>")
+(defvar boogiepl-constants-regexp (regexp-opt boogiepl-constants 'words))
 (defvar boogiepl-operators-regexp (regexp-opt boogiepl-operators))
 (defvar boogiepl-functions-regexp (regexp-opt boogiepl-functions 'words))
 
@@ -177,8 +177,8 @@ For detail, see `comment-dwim'."
 ;; Define a face for each keyword class.
 (setq boogiepl-font-lock-keywords
       `(
-        (,boogiepl-type-regexp . font-lock-type-face)
-        (,boogiepl-constant-regexp . font-lock-constant-face)
+        (,boogiepl-types-regexp . font-lock-type-face)
+        (,boogiepl-constants-regexp . font-lock-constant-face)
         (,boogiepl-operators-regexp . font-lock-builtin-face)
         (,boogiepl-functions-regexp . font-lock-function-name-face)
         (,boogiepl-keywords-regexp . font-lock-keyword-face)
