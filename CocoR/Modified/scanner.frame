@@ -256,6 +256,7 @@ public class Scanner {
 	Token/*!*/ t;          // current token
 	int ch;           // current input character
 	int pos;          // byte position of current character
+	int charPos;
 	int col;          // column number of current character
 	int line;         // line number of current character
 	int oldEols;      // EOLs that appeared in a comment;
@@ -497,4 +498,3 @@ public class Scanner {
 public delegate void ErrorProc(int n, string filename, int line, int col);
 
 
-$$$
