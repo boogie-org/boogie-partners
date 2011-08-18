@@ -34,14 +34,19 @@ import os
 import re
 import time
 from aste.workers import workers
+from aste.workers import msworkers
 import aste.utils.misc
 from aste.aste import NonBuildError
 
-class TestRunnerMixin(workers.BuildWorker):
+class TestRunnerMixin(msworkers.MSBuildWorker):
     """
-    A mixin for :class:`aste.workers.workers.BuildWorker` that adds the
+    A mixin for :class:`aste.workers.msworkers.MSBuildWorker` that adds the
     functionality to execute tests from an 'alltests.txt'-style file and record
     their runtimes.
+
+    .. todo::
+        Isn't is sufficient to inherit from workers.BuildWorker instead of
+        msworkers.MSBuildWorker?
     """
 
     def runTestFromAlltestsFile(self, filename, category, shortOnly=False):
@@ -125,7 +130,7 @@ class SVNMixin(workers.BaseWorker):
         self.__user = user
         self.__password = password
 
-    def _run_svn(self, arg, auth=True, user=None, password=None, abort=True):
+    def _svn_run(self, arg, auth=True, user=None, password=None, abort=True):
         """
         .. todo:: Remove the abort-flag, we should play it safe and always
                   abort. If there are cases where a non-zero returncode
@@ -158,6 +163,30 @@ class SVNMixin(workers.BaseWorker):
                        output=result['output'], exception_class=NonBuildError)
 
         return result
+        
+    def svn_get_source(self, svnUrl, destDir, update=False):
+        """Checks out to or updates the local copy at ``destDir`` from the
+        the SVN repository at ``svnUrl``, depending on the variable ``update``.
+
+        Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
+        the summary_current ``revision`` number.
+        """
+        if not update:
+            if os.path.exists(destDir):
+                # shutil.rmtree(destDir)     # Fails on Windows if a file inside
+                #                            # destDir is read-only.
+                cmd = "rmdir /S /Q %s" % destDir
+                self.run(cmd, shell=True)
+
+        if not os.path.exists(destDir):
+            result = self.svn_checkout(svnUrl, destDir, auth=False)
+        else:
+            result = self.svn_update(destDir, auth=False)
+
+        revisions = self.svn_get_revision_numbers(destDir)
+        result.update(revisions)
+
+        return result
 
     def svn_ensure_version_controlled(self, path, auth=True, user=None,
                                       password=None, abort=True):
@@ -167,25 +196,25 @@ class SVNMixin(workers.BaseWorker):
         not yet under version control!
         """
 
-        result = self._run_svn('status ' + path, auth=auth, user=user,
+        result = self._svn_run('status ' + path, auth=auth, user=user,
                                password=password, abort=abort)
 
         if result['output'].startswith('?'):
             # SVN does not know about the path, hence we have to add it
             # to the repository.
-            result = self._run_svn('add ' + path, auth=auth, user=user,
+            result = self._svn_run('add ' + path, auth=auth, user=user,
                                    password=password, abort=abort)
 
     def svn_update(self, path, auth=True, user=None, password=None, abort=True):
         arg = 'update %s' % path
 
-        return self._run_svn(arg, auth=auth, user=user, password=password,
+        return self._svn_run(arg, auth=auth, user=user, password=password,
                              abort=abort)
 
     def svn_revert(self, path, abort=True):
         arg = 'revert ' + path
 
-        return self._run_svn(arg, auth=False, abort=abort)
+        return self._svn_run(arg, auth=False, abort=abort)
 
     def svn_get_revision_numbers(self, path, abort=True):
         """
@@ -193,7 +222,7 @@ class SVNMixin(workers.BaseWorker):
         matching the the output of ``svn info``.
         """
 
-        result = self._run_svn('info ' + path, auth=False, abort=abort)
+        result = self._svn_run('info ' + path, auth=False, abort=abort)
 
         revision = re.search('^Revision: (\d+)',
                              result['output'],
@@ -215,7 +244,7 @@ class SVNMixin(workers.BaseWorker):
 
         arg = 'checkout %s %s' % (url, localdir)
 
-        return self._run_svn(arg, auth=auth, user=user, password=password,
+        return self._svn_run(arg, auth=auth, user=user, password=password,
                              abort=abort)
 
     def svn_commit(self, path, msg, auth=True, user=None, password=None,
@@ -227,7 +256,7 @@ class SVNMixin(workers.BaseWorker):
 
         arg = 'commit -m "%s" %s' % (msg, path)
 
-        return self._run_svn(arg, auth=auth, user=user, password=password,
+        return self._svn_run(arg, auth=auth, user=user, password=password,
                              abort=abort)
 
 
@@ -251,7 +280,7 @@ class MercurialMixin(workers.BaseWorker):
     def _insert_credentials(self, url, username, password):
         return url.replace("https://", "%s%s:%s@" % ("https://", username, password))
 
-    def _run_hg(self, arg, logarg=None, abort=True):
+    def _hg_run(self, arg, logarg=None, abort=True):
         """
         .. todo:: Remove the abort-flag, we should play it safe and always
                   abort. If there are cases where a non-zero returncode
@@ -272,6 +301,39 @@ class MercurialMixin(workers.BaseWorker):
                        output=result['output'], exception_class=NonBuildError)
 
         return result
+        
+    def hg_get_source(self, url, destDir, project, update=False):        
+        """Checks out to or updates the local copy at ``destDir`` from the
+        the Mercurial repository at ``url``, depending on the variable ``update``.
+
+        Returns a dictionary with the ``returncode`` and the ``output`` of HG,
+        and the current ``revision`` number.
+        """
+        if not update:
+            if os.path.exists(destDir):
+                # shutil.rmtree(destDir)     # Fails on Windows if a file inside
+                #                            # destDir is read-only.
+                cmd = "rmdir /S /Q %s" % destDir
+                self.run(cmd, shell=True)
+                
+                if (os.path.exists(destDir)):
+                    raise NonBuildError("'%s' could not be deleted.")
+
+        self.set_default_auth(self.cfg.CommitSummary[project].User, self.cfg.CommitSummary[project].Password)
+
+        if not os.path.exists(destDir):
+            result = self.hg_checkout(url, destDir)
+        else:
+            self.cd(destDir)
+            result = self.hg_pull(destDir)
+            result = self.hg_update()
+
+        self.cd(destDir)
+
+        revisions = self.hg_get_revision_numbers()
+        result.update(revisions)
+
+        return result
 
     def hg_ensure_version_controlled(self, path, abort=True):
         """
@@ -280,20 +342,20 @@ class MercurialMixin(workers.BaseWorker):
         not yet under version control!
         """
 
-        result = self._run_hg('status ' + path, abort=abort)
+        result = self._hg_run('status ' + path, abort=abort)
 
         if result['output'].startswith('?'):
             # HG does not know about the path, hence we have to add it
             # to the repository.
-            result = self._run_hg('add ' + path, abort=abort)
+            result = self._hg_run('add ' + path, abort=abort)
 
     def hg_update(self, abort=True):
 
-        return self._run_hg("update", abort=abort)
+        return self._hg_run("update", abort=abort)
 
     def hg_revert(self, path, abort=True):
 
-        return self._run_hg('revert ' + path, abort=abort)
+        return self._hg_run('revert ' + path, abort=abort)
 
     def hg_get_revision_numbers(self, abort=True):
         """
@@ -301,7 +363,7 @@ class MercurialMixin(workers.BaseWorker):
         matching the the output of ``hg id -i``.
         """
 
-        result = self._run_hg('id -i', abort=abort)
+        result = self._hg_run('id -i', abort=abort)
 
         revision = result['output'].strip()
 
@@ -315,7 +377,7 @@ class MercurialMixin(workers.BaseWorker):
         arg = 'clone %s %s' % (self._insert_credentials(url, self.__user, self.__password), localdir)
         logarg = 'clone %s %s' % (self._insert_credentials(url, self.__user, "********"), localdir)
 
-        return self._run_hg(arg, logarg=logarg, abort=abort)
+        return self._hg_run(arg, logarg=logarg, abort=abort)
 
     def hg_commit(self, path, msg, abort=True):
         """
@@ -325,7 +387,7 @@ class MercurialMixin(workers.BaseWorker):
 
         arg = 'commit --message "%s" --user "CodeplexBot" %s' % (msg, path)
 
-        return self._run_hg(arg, abort=abort)
+        return self._hg_run(arg, abort=abort)
 
     def hg_push(self, url, abort=True):
         """
@@ -336,4 +398,9 @@ class MercurialMixin(workers.BaseWorker):
         arg = 'push ' # + self._insert_credentials(url, self.__user, self.__password)
         logarg = 'push ' # + self._insert_credentials(url, self.__user, "********")
 
-        return self._run_hg(arg, logarg=logarg, abort=abort)
+        return self._hg_run(arg, logarg=logarg, abort=abort)
+        
+    def hg_pull(self, localdir, abort=True):
+        arg = 'pull %s' % localdir
+
+        return self._hg_run(arg, abort=abort)

@@ -20,14 +20,14 @@
 # USA.
 # --------------------------------- :LICENSE ----------------------------------
 
-from aste.workers.workers import BuildWorker
+from aste.workers.msworkers import MSBuildWorker
 from aste.workers.mixins import TestRunnerMixin
 from shutil import make_archive
 from datetime import datetime
 import os
 
 
-class BoogieWorker(TestRunnerMixin, BuildWorker):
+class BoogieWorker(TestRunnerMixin, MSBuildWorker):
     """Implements the steps necessary to build Boogie.
     """
 

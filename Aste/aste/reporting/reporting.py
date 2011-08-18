@@ -22,12 +22,40 @@
 
 
 """
-Functionality related to creating reports
+Functionality related to creating reports.
+
+.. todo::
+    Creating the report mail is currently rather inflexible and also distributed
+    across various modules, for example, this one, run.py, reporting/boogie.py,
+    tasks/boogie.py.
+    
+    My ideas for refactoring the reporting functionalities are
+    
+     - Define a set of environment data that is generic to all build processes
+       and can thus be used regardless of the actual task that has been
+       executed.
+       
+     - For each module in tasks/, e.g. for tasks/boogie.py, optionally define a
+       report generator method (with a specific name) that can generate
+       report text regardless of the executed task in that module.
+       
+     - For each task, e.g. tasks.boogie.FullBuild, optionally define a report
+       generator method (with a specific name) that generates report text
+       specific to the executed task.
+       
+     - After a task has been executed the most specific generator that is
+       actually is declared is called. If none is present, the default one
+       is used. If a specific generator method exists then the less specific
+       ones are not called. It is thus left to the implementor of the specific
+       method to invoke the less specific ones, if appropriate.
+       
+     - The existing formatters for e.g. BuildExceptions can probably be kept as
+       they currently are.
+       
+     - Not addressed yet: how to disable reporting on a task-specific basis
 """
 
-
 import textwrap
-
 
 def _concat(what, to):
     if not what.endswith('\n'):
@@ -94,8 +122,14 @@ class AsteExceptionFormatter(object):
                 text = "\n".join(["  " + line for line in textlines])
 
             self.__text = _concat("%s:\n%s" % (title, text), self.__text)
+            
 
-
+# TODO: 2011-08-17 Malte:
+#   The generator doesn't actually have state and it might be better to have a
+#   bunch of (static) methods taking IDENT and env as arguments, which
+#   generate parts of the report that are combined afterwards.
+#   This is partly done already by having such methods in e.g.
+#   reporting/specsharp.py.
 class BuildStatusReportGenerator(object):
 
     INDENT = AsteExceptionFormatter.INDENT
@@ -158,29 +192,34 @@ class BuildStatusReportGenerator(object):
             summary = ", ".join(pieces)
         else:
             summary = 'OK'
+            
+        if self.__env.data['taskname']:
+            summary = self.__env.data['taskname'] + ": " + summary
 
         return summary
 
-    def assemble_additional_information(self):
-        text = "Additional information:\n"
-        text += self.INDENT + "Host id: %s\n" % self.__env.cfg.HostId
-        text += self.INDENT + "Tests (only short): %s (%s)\n" % (
-                            self.__env.cfg.Flags.Tests,
-                            self.__env.cfg.Flags.ShortTestsOnly)
-        text += self.INDENT + "Commit summary (if changed): %s\n" % self.__env.cfg.Flags.UploadSummary
-        text += self.INDENT + "Upload build: %s\n" % self.__env.cfg.Flags.UploadTheBuild
-
-        for project in self.__env.data['projects']:
-            if (project in self.__env.cfg.CommitSummary
-                and 'Url' in self.__env.cfg.CommitSummary[project]):
-
-                text += self.INDENT + "%s summary: %s\n" % (
-                    project, self.__env.cfg.CommitSummary[project].Url)
-
-        return text
-
     def __append_revision_if_set(self, text, project):
-        if 'CheckoutWorker' in self.__env.data:
-            text += " r" + self.__env.data['CheckoutWorker']['get' + project]['last_changed_revision']
+        data = self.__env.data
+        key1 = 'CheckoutWorker'
+        key2 = 'get' + project
+        
+        if (key1 in data and key2 in data[key1]):
+            text += " " + data[key1][key2]['last_changed_revision']
 
         return text
+
+
+# Methods that generate parts of the report and can be combined in arbitrary
+# order.
+
+def generate_summary_file_urls_from_config(indent, env):
+    text = ''
+
+    for project in env.data['projects']:
+        if (project in env.cfg.CommitSummary
+                and 'Url' in env.cfg.CommitSummary[project]):
+
+                text += indent + "%s summary: %s\n" % (
+                        project, env.cfg.CommitSummary[project].Url)
+                        
+    return text

@@ -21,10 +21,10 @@
 # --------------------------------- :LICENSE ----------------------------------
 
 
-from aste.workers.workers import BuildWorker
+from aste.workers.msworkers import MSBuildWorker
 
 
-class SpecSharpWorker(BuildWorker):
+class SpecSharpWorker(MSBuildWorker):
     """
     Implements the steps necessary to build Spec#.
     """

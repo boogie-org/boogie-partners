@@ -49,7 +49,7 @@ import re
 from collections import OrderedDict
 from subprocess import (Popen, PIPE, STDOUT)
 from datetime import datetime
-from aste.utils.reporting import AsteExceptionFormatter
+from aste.reporting.reporting import AsteExceptionFormatter
 from aste import aste # Dangerous!
 
 
@@ -75,7 +75,7 @@ class BaseWorker(object):
 
     @property
     def env(self):
-        """Configuration as provided by the environment."""
+        """The environment in which the worker operates."""
         return self._env
 
     def cd(self, destDir):
@@ -385,68 +385,12 @@ class BuildWorker(MatchingWorker):
         self.__project = project_name
         self.__create_data_entry()
 
-    matchers = {
-        'general': [
-            (['warning \w+: .*', 'NMAKE : fatal error \w+: .*'], [accept], [str]) # TODO(wuestholz): Why should we accept a fatal error?
-        ],
-        'counting': [
-            (
-                [ # Patterns
-                    '((\d+) (error)\(s\)),', '((\d) (warning)\(s\))',
-                    '(, (\d+) (warning)s)', '(-- (\d+) (error)s,)', '(, (\d+) (failed),)'
-                ],
-                [ # Filters
-                    lambda match: acceptIfNotZero(match[1]),
-                    lambda match: abortIfSevere(match[2])
-                ],
-                # Formatter
-                [lambda match: "%s %s" % (match[1:3])]
-            )
-        ],
-        'envfatals': [
-            (
-                ['\d+>?(ERROR copying)'],
-                [raiseNonBuildError], [lambda match: match[0]]
-            ), (
-                ['The process cannot access the file because it is being used by another process'],
-                [raiseNonBuildError], [lambda match: match[0]]
-            )
-        ],
-        #
-        # http://blogs.msdn.com/b/msbuild/archive/2006/11/03/msbuild-visual-studio-aware-error-messages-and-message-formats.aspx
-        #
-        'msbuild-friendly': [
-            ([r"""
-(?imx) # re.IGNORECASE, re.MULTILINE, re.VERBOSE
-^(
-    (?:                    # Origin (optional)
-        (?:
-            ([A-Z]:\\.*?)\((.*?)\)    # Absolute path followed by (line,column)
-                |
-            (.*?)                     # Or simply anything
-        )(?::\ )                # followed by ": "
-    )?
-    [^:]?                  # Subcategory (optional)
-    (error|warning)\       # Category (required)
-    (\w+)                  # Code (required)
-    (:\ .*)?               # Text (optional)
-)$
-"""], [accept], [lambda match: match[0]]
-            )
-        ]
-    }
-
     def _matchDefaults(self, output):
-        """Matches the ``output`` with the matcher groups *general* and *counting*
-        and returns the matches in a single list.
+        """Subsequently match ``output`` against match groups that are always
+        to be used, i.e. that are don't depend on each other's results.
         """
-
-        matches = self.matchNamedGroup('msbuild-friendly', output)
-        matches += self.matchNamedGroup('envfatals', output)
-        matches += self.matchNamedGroup('general', output)
-        matches += self.matchNamedGroup('counting', output)
-
-        return matches
+        raise '%s.%s.%s is an abstract method but hasn\'t been overriden.' % (
+                __class.__.__module__, __class__.__name__, _matchDefaults.__name__)
 
     def _runDefaultBuildStep(self, cmd):
         """

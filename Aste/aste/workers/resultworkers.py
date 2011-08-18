@@ -155,14 +155,10 @@ class ReleaseUploader(BaseWorker):
 
         self.client = Client(self.cfg.Nightlies.SoapUrl)
 
-    def create_release(self, project_name, username, password,
-                       release_name=None,
+    def create_release(self, project_name, username, password, release_name,
                        release_description=None,
                        status='Planning', show_to_public=True,
                        is_default_release=False):
-
-        if release_name == None:
-            release_name = self.default_release_name
 
         if release_description == None:
             release_description = self.default_description
@@ -192,7 +188,7 @@ class ReleaseUploader(BaseWorker):
             release_name = self.default_release_name
 
         try:
-            self.create_release(project_name, username, password)
+            self.create_release(project_name, username, password, release_name)
         except WebFault as exc:
             pattern = (r"^Server raised fault: "
                        + r"'The release '(.*)' already exists\.'$")

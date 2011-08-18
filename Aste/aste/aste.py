@@ -150,6 +150,9 @@ class Environment(object):
     __summaryLogger = None
 
     data = {
+        'taskname': None, # String, optional
+        'taskclass': None, # Class, to be set during initial setup
+        'configuration': None, # String, to be set during initial setup
         'status': STATUS_OK,
         'timings': {
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

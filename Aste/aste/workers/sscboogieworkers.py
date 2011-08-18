@@ -21,13 +21,13 @@
 # --------------------------------- :LICENSE ----------------------------------
 
 
-from aste.workers.workers import BuildWorker
+from aste.workers.msworkers import MSBuildWorker
 from aste.workers.mixins import TestRunnerMixin
 from shutil import make_archive
 import os
 
 
-class SscBoogieWorker(TestRunnerMixin, BuildWorker):
+class SscBoogieWorker(TestRunnerMixin, MSBuildWorker):
     """Implements the steps necessary to build SscBoogie.
     """
 

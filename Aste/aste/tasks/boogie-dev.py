@@ -29,10 +29,9 @@ from aste.tasks.tasks import Task, AbstractBuildTask
 from aste.workers.specsharpworkers import SpecSharpWorker
 from aste.workers.boogieworkers import BoogieWorker
 from aste.workers.sscboogieworkers import SscBoogieWorker
-from aste.workers.svnworkers import CommitSummaryWorker
+
 import aste.utils.errorhandling as errorhandling
 from aste.tasks.tasks import BoogieTask
-
 
 class SpecSharpCheckinTests(Task):
     def run(self):
@@ -49,17 +48,6 @@ class TestSscBoogie(Task):
         sscBoogieWorker = SscBoogieWorker(self.env)
         sscBoogieWorker.testSscBoogie()
 
-class DiffLogs(Task):
-    def run(self, **kwargs):
-        worker = CommitSummaryWorker(self.env)
-        diff = worker.diff(kwargs['file1'], kwargs['file2'])
-
-        print diff
-
-class Noop(Task):
-    def run(self): pass
-        # Does nothing
-
 class ReleaseBothBoogies(AbstractBuildTask):
     def __init__(self, env):
         super(ReleaseBothBoogies, self).__init__(env, None)
@@ -75,3 +63,9 @@ class UploadBoogie(BoogieTask):
     @errorhandling.add_context("Building Boogie")
     def build(self):
         self.upload_release(self.worker)
+
+        
+class BuildOnly(FullBuild):
+    def run(self):
+        self.cfg.Flags.Tests = False
+        super(BuildOnly, self).run()

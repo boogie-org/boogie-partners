@@ -43,13 +43,14 @@ thisPath = os.path.realpath(os.path.dirname(sys.argv[0]))
 sys.path.append(thisPath)
 
 import traceback
+import inspect
 from aste.utils import reflection
 from optparse import OptionParser
 from aste.aste import Environment, AsteException, BuildError
 from aste.workers.resultworkers import StatusMailer
 from aste.utils.misc import rot47
-from aste.tasks.tasks import RecordTimings
-import aste.utils.reporting as reporting
+from aste.tasks.boogie import RecordTimings
+from aste.reporting.reporting import AsteExceptionFormatter, BuildStatusReportGenerator
 
 
 # Return codes
@@ -103,15 +104,43 @@ if args[0].lower() != 'start':
 # ==========================
 
 env = Environment(options)
-task = reflection.get_class(options.task)(env)
 
+# Setting up the task
+# Errors thrown here are not logged and no status mail will be sent.
+
+try:
+    task = reflection.get_class(options.task)(env)
+except Exception:
+    print "Error: Task '%s' couldn't be instantiated." % options.task
+    raise
+
+task_module = inspect.getmodule(task)
+report_fct_name = "generate_report"
+report_fct = getattr(task_module, report_fct_name, None)
+if (not callable(report_fct)):
+    raise Error("Task module '%s' doesn't define report generator method '%s'" % (task_module.__name__, report_fct_name))
+
+# Setting up the status mailer
+    
 mailer = StatusMailer(env)
-
 mail_status = ''
 mail_subject = ''
 mail_body = ''
-exception = None
 
+# Setting environment data
+
+env.data['taskclass'] = task
+env.data['configuration'] = options.config
+
+# Logging environment information
+
+taskname = task.__module__ + '.' + task.__class__.__name__        
+env._summary.info('# Configuration: ' + options.config)
+env._summary.info('# Task: ' + taskname)
+
+# Misc
+
+exception = None
 
 # Run the task
 # ============
@@ -126,7 +155,7 @@ for arg in args:
 
 # REMEMBER: An AsteException should only be thrown after all relevant
 # context information have been logged. Thus, we don't need to log the
-# exception here, after catching it.
+# exception after it has been caught here.
 
 try:
     task.run(**kwargs)
@@ -143,22 +172,22 @@ except AsteException as err:
         trace = "".join(traceback.format_list(traceback.extract_tb(sys.exc_info()[2])))
         trace = "\nTraceback (most recent call last):\n" + trace
 
-    mail_body = reporting.AsteExceptionFormatter().format(err) + trace
+    mail_body = AsteExceptionFormatter().format(err) + trace
     exception = err
 except Exception as err:
     # Exceptions other than AsteException are always assumed to be
-    # unexpected, not build-related errors.
+    # unexpected, that is, not build-related errors.
     #
     mail_body = traceback.format_exc()
     mailer.reportError(mail_body) # Log the exception.
     exception = err
 finally:
-    generator = reporting.BuildStatusReportGenerator(env)
+    generator = BuildStatusReportGenerator(env)
 
     mail_body = (generator.generate_report()
                  + "\n" + "-" * 70 + "\n"
                  + "\n" + mail_body
-                 + "\n" + generator.assemble_additional_information())
+                 + "\n" + report_fct(generator.INDENT, env))
 
     mail_subject = generator.generate_report_summary(exception=exception)
 

@@ -52,72 +52,73 @@ class CheckoutWorker(MercurialMixin, SVNMixin, BaseWorker):
 
     def __init__(self, env):
         super(CheckoutWorker, self).__init__(env)
-        self.env.data[self.DID] = {}
+        if (not self.DID in self.env.data):
+            self.env.data[self.DID] = {}
 
-    def _getSvnSource(self, svnUrl, destDir, update=False):
-        """Checks out to or updates the local copy at ``destDir`` from the
-        the SVN repository at ``svnUrl``, depending on the variable ``update``.
+    # def _getSvnSource(self, svnUrl, destDir, update=False):
+        # """Checks out to or updates the local copy at ``destDir`` from the
+        # the SVN repository at ``svnUrl``, depending on the variable ``update``.
 
-        Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
-        the summary_current ``revision`` number.
+        # Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
+        # the summary_current ``revision`` number.
 
-        If the SVN command terminates with a non-zero return :func:`abort` is
-        invoked to abort the execution.
-        """
-        if not update:
-            if os.path.exists(destDir):
-                # shutil.rmtree(destDir)     # Fails on Windows if a file inside
-                #                            # destDir is read-only.
-                cmd = "rmdir /s/q %s" % destDir
-                self.run(cmd, shell=True)
+        # If the SVN command terminates with a non-zero return :func:`abort` is
+        # invoked to abort the execution.
+        # """
+        # if not update:
+            # if os.path.exists(destDir):
+                # # shutil.rmtree(destDir)     # Fails on Windows if a file inside
+                # #                            # destDir is read-only.
+                # cmd = "rmdir /s/q %s" % destDir
+                # self.run(cmd, shell=True)
 
-        if not os.path.exists(destDir):
-            result = self.svn_checkout(svnUrl, destDir, auth=False)
-        else:
-            result = self.svn_update(destDir, auth=False)
+        # if not os.path.exists(destDir):
+            # result = self.svn_checkout(svnUrl, destDir, auth=False)
+        # else:
+            # result = self.svn_update(destDir, auth=False)
 
-        revisions = self.svn_get_revision_numbers(destDir)
-        result.update(revisions)
+        # revisions = self.svn_get_revision_numbers(destDir)
+        # result.update(revisions)
 
-        return result
+        # return result
 
-    def _getHgSource(self, url, destDir, project, update=False):
-        """Checks out to or updates the local copy at ``destDir`` from the
-        the Mercurial repository at ``url``, depending on the variable ``update``.
+    # def _getHgSource(self, url, destDir, project, update=False):
+        # """Checks out to or updates the local copy at ``destDir`` from the
+        # the Mercurial repository at ``url``, depending on the variable ``update``.
 
-        Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
-        the summary_current ``revision`` number.
+        # Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
+        # the summary_current ``revision`` number.
 
-        If the SVN command terminates with a non-zero return :func:`abort` is
-        invoked to abort the execution.
-        """
-        if not update:
-            if os.path.exists(destDir):
-                # shutil.rmtree(destDir)     # Fails on Windows if a file inside
-                #                            # destDir is read-only.
-                cmd = "rmdir /s/q %s" % destDir
-                self.run(cmd, shell=True)
+        # If the SVN command terminates with a non-zero return :func:`abort` is
+        # invoked to abort the execution.
+        # """
+        # if not update:
+            # if os.path.exists(destDir):
+                # # shutil.rmtree(destDir)     # Fails on Windows if a file inside
+                # #                            # destDir is read-only.
+                # cmd = "rmdir /s/q %s" % destDir
+                # self.run(cmd, shell=True)
 
-        self.set_default_auth(self.cfg.CommitSummary[project].User, self.cfg.CommitSummary[project].Password)
-        if not os.path.exists(destDir):
-            result = self.hg_checkout(url, destDir)
-        else:
-            self.cd(destDir)
-            result = self.hg_update()
+        # self.set_default_auth(self.cfg.CommitSummary[project].User, self.cfg.CommitSummary[project].Password)
+        # if not os.path.exists(destDir):
+            # result = self.hg_checkout(url, destDir)
+        # else:
+            # self.cd(destDir)
+            # result = self.hg_update()
 
-        self.cd(destDir)
+        # self.cd(destDir)
 
-        revisions = self.hg_get_revision_numbers()
-        result.update(revisions)
+        # revisions = self.hg_get_revision_numbers()
+        # result.update(revisions)
 
-        return result
+        # return result
 
     @errorhandling.add_context("Checking out Spec# from CodePlex")
     def getSpecSharp(self):
         """Downloads the Spec# sources from ``SVN.SpecSharp`` to
         ``Paths.SpecSharp``.
         """
-        result = self._getHgSource(self.cfg.HG.SpecSharp, os.path.split(self.cfg.Paths.SpecSharp)[0], "SpecSharp", self.cfg.HG.Update)
+        result = self.hg_get_source(self.cfg.HG.SpecSharp, os.path.split(self.cfg.Paths.SpecSharp)[0], "SpecSharp", self.cfg.HG.Update)
         self.env.data[self.DID]['getSpecSharp'] = result
         self.env.data[self.DID]['getSscBoogie'] = result
         self.noteSummary('SpecSharp revision: %s' % result['last_changed_revision'],
@@ -130,7 +131,7 @@ class CheckoutWorker(MercurialMixin, SVNMixin, BaseWorker):
         """Downloads the Boogie sources from ``SVN.Boogie`` to
         ``Paths.Boogie``.
         """
-        result = self._getHgSource(self.cfg.HG.Boogie, self.cfg.Paths.Boogie, "Boogie", self.cfg.HG.Update)
+        result = self.hg_get_source(self.cfg.HG.Boogie, self.cfg.Paths.Boogie, "Boogie", self.cfg.HG.Update)
         self.env.data[self.DID]['getBoogie'] = result
         self.noteSummary('Boogie revision: %s' % result['last_changed_revision'],
                          prefix='# ')
@@ -260,4 +261,5 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
         elif self._VCS == "HG":
             self.cd(self.cfg.Paths[self.project])
             self.hg_commit(self.summary_checkout_file, message)
+            self.hg_pull(self._url, self.cfg.Paths[self.project])
             self.hg_push(self._url)
