@@ -24,13 +24,13 @@
 """
 Aste start script. Initialises the required Aste environment
 (configuration, logger, etc.) and performs a given task.
-
+        
 .. todo::
-        Make committing summary and other result-dependent operations
-        depending on the task that was performed.
-        That way one can perform certain tasks without e.g. committing a
-        summary that simply differs from the previous one because the task
-        it reflects is a different one.
+    Change arguments/options to this script
+     
+     - Make configuration and task mandatory arguments
+     - Just have tasks, no actions; implement rot47 as a task
+     - Tasks may have arguments (already possible, simply keep)
 """
 
 
@@ -73,10 +73,10 @@ Actions:
 parser = OptionParser(usage=usage)
 
 parser.add_option("-c", "--config", dest="config", metavar="FILE",
-                  default="main.cfg", help="Configuration file [default: %default]")
+                  default="boogie.cfg", help="Configuration file [default: %default]")
 
 parser.add_option("-t", "--task", dest="task",
-                  default="aste.tasks.tasks.FullBuild", help="Task to execute [default: %default]")
+                  default="aste.tasks.boogie.FullBuild", help="Task to execute [default: %default]")
 
 parser.add_option("--no-file-logging", dest="noFileLogging", action="store_true",
                   default=False, help="Log to stdout only [default: %default]")

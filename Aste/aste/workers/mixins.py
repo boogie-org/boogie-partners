@@ -266,8 +266,8 @@ class MercurialMixin(workers.BaseWorker):
     functionality to interact with Mercurial repositories.
     """
 
-    __user = ""
-    __password = ""
+    __user = None     # String if set
+    __password = None # String if set
 
     def set_default_auth(self, user, password):
         """
@@ -318,8 +318,6 @@ class MercurialMixin(workers.BaseWorker):
                 
                 if (os.path.exists(destDir)):
                     raise NonBuildError("'%s' could not be deleted.")
-
-        self.set_default_auth(self.cfg.CommitSummary[project].User, self.cfg.CommitSummary[project].Password)
 
         if not os.path.exists(destDir):
             result = self.hg_checkout(url, destDir)
@@ -389,18 +387,37 @@ class MercurialMixin(workers.BaseWorker):
 
         return self._hg_run(arg, abort=abort)
 
+    # TODO: hg_push and hg_pull are currently inconsistent in the sense that
+    #       hg_push requires to be executed in the local repository
+    #       whereas hg_pull takes the local repository as an argument (localdir).
+        
     def hg_push(self, url, abort=True):
         """
         Push to the repository under ``url``.
         The ``password`` is expected to be rot47ed.
         """
 
-        arg = 'push ' # + self._insert_credentials(url, self.__user, self.__password)
-        logarg = 'push ' # + self._insert_credentials(url, self.__user, "********")
+        arg = 'push ' + self._insert_credentials(url, self.__user, self.__password)
+        logarg = 'push ' + self._insert_credentials(url, self.__user, "********")
+        
+        print "arg", arg
+        print "logarg", logarg
 
         return self._hg_run(arg, logarg=logarg, abort=abort)
         
-    def hg_pull(self, localdir, abort=True):
+    def hg_pull(self, localdir, abort=True, rebase=False):
+        """
+        .. todo::
+            The following python code can be used e.g. when starting Aste to
+            ensure that the rebase extension is enabled:
+            ``re.search('enabled extensions:\s+rebase(\s+.*\s+)+disabled extensions:', output) != None``,
+            where ``output`` is the output of ``hg help extensions``.
+            
+            Something more direct, e.g. ``hg is_extension_enabled rebase`` would
+            obviously be better.
+        """
+
         arg = 'pull %s' % localdir
+        if rebase: arg += ' --rebase'
 
         return self._hg_run(arg, abort=abort)

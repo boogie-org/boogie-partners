@@ -55,64 +55,6 @@ class CheckoutWorker(MercurialMixin, SVNMixin, BaseWorker):
         if (not self.DID in self.env.data):
             self.env.data[self.DID] = {}
 
-    # def _getSvnSource(self, svnUrl, destDir, update=False):
-        # """Checks out to or updates the local copy at ``destDir`` from the
-        # the SVN repository at ``svnUrl``, depending on the variable ``update``.
-
-        # Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
-        # the summary_current ``revision`` number.
-
-        # If the SVN command terminates with a non-zero return :func:`abort` is
-        # invoked to abort the execution.
-        # """
-        # if not update:
-            # if os.path.exists(destDir):
-                # # shutil.rmtree(destDir)     # Fails on Windows if a file inside
-                # #                            # destDir is read-only.
-                # cmd = "rmdir /s/q %s" % destDir
-                # self.run(cmd, shell=True)
-
-        # if not os.path.exists(destDir):
-            # result = self.svn_checkout(svnUrl, destDir, auth=False)
-        # else:
-            # result = self.svn_update(destDir, auth=False)
-
-        # revisions = self.svn_get_revision_numbers(destDir)
-        # result.update(revisions)
-
-        # return result
-
-    # def _getHgSource(self, url, destDir, project, update=False):
-        # """Checks out to or updates the local copy at ``destDir`` from the
-        # the Mercurial repository at ``url``, depending on the variable ``update``.
-
-        # Returns a dictionary with the ``returncode`` and the ``output`` of SVN, and
-        # the summary_current ``revision`` number.
-
-        # If the SVN command terminates with a non-zero return :func:`abort` is
-        # invoked to abort the execution.
-        # """
-        # if not update:
-            # if os.path.exists(destDir):
-                # # shutil.rmtree(destDir)     # Fails on Windows if a file inside
-                # #                            # destDir is read-only.
-                # cmd = "rmdir /s/q %s" % destDir
-                # self.run(cmd, shell=True)
-
-        # self.set_default_auth(self.cfg.CommitSummary[project].User, self.cfg.CommitSummary[project].Password)
-        # if not os.path.exists(destDir):
-            # result = self.hg_checkout(url, destDir)
-        # else:
-            # self.cd(destDir)
-            # result = self.hg_update()
-
-        # self.cd(destDir)
-
-        # revisions = self.hg_get_revision_numbers()
-        # result.update(revisions)
-
-        # return result
-
     @errorhandling.add_context("Checking out Spec# from CodePlex")
     def getSpecSharp(self):
         """Downloads the Spec# sources from ``SVN.SpecSharp`` to
@@ -172,10 +114,11 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
         super(CommitSummaryWorker, self).__init__(env)
 
         self.project = project
-
         self._VCS = VCS
-
         self._url = url
+
+        self.set_default_auth(self.cfg.CommitSummary[project].User,
+                              self.cfg.CommitSummary[project].Password)
 
         self.summary_current = self.cfg.Logging.SummaryLog
 
@@ -240,26 +183,62 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
     def commitSummary(self, summary, message=None):
         if message == None:
             message = self.default_commit_message
-
-        shutil.copyfile(summary, self.summary_checkout_file)
-
-        # Ensure that the summary we are about to commit has already been
-        # added to the repo.
+            
         if self._VCS == "SVN":
-            self.svn_ensure_version_controlled(
-                self.summary_checkout_file,
-                user=self.cfg.CommitSummary[self.project].User,
-                password=self.cfg.CommitSummary[self.project].Password)
+            self.svn_commit_summary(summary, message)
         elif self._VCS == "HG":
-            self.hg_ensure_version_controlled(self.summary_checkout_file)
+            self.hg_commit_summary(summary, message)
+        else:
+            raise NonBuildError("%s._VCS has unexpected value %s" % (self.__class__.__name__, self._VCS))
+
+        # shutil.copyfile(summary, self.summary_checkout_file)
+
+        # # Ensure that the summary we are about to commit has already been
+        # # added to the repo.
+        # if self._VCS == "SVN":
+            # self.svn_ensure_version_controlled(
+                # self.summary_checkout_file,
+                # user=self.cfg.CommitSummary[self.project].User,
+                # password=self.cfg.CommitSummary[self.project].Password)
+        # elif self._VCS == "HG":
+            # self.hg_ensure_version_controlled(self.summary_checkout_file)
+
+        # # Commit the current summary.
+        # if self._VCS == "SVN":
+            # self.svn_commit(self.summary_checkout_file, message,
+                            # user=self.cfg.CommitSummary[self.project].User,
+                            # password=self.cfg.CommitSummary[self.project].Password)
+        # elif self._VCS == "HG": self.hg_commit_summary(summary, message)
+            # self.cd(self.cfg.Paths[self.project])
+            # self.hg_commit(self.summary_checkout_file, message)
+            # self.hg_pull(self._url, self.cfg.Paths[self.project])
+            # self.hg_push(self._url)
+
+    def hg_commit_summary(self, summary, message):
+        self.cd(self.cfg.Paths[self.project])
+        shutil.copyfile(summary, self.summary_checkout_file)
+        
+        # Ensure that the summary we are about to commit has already been
+        # added to the repo.        
+        self.hg_ensure_version_controlled(self.summary_checkout_file)
 
         # Commit the current summary.
-        if self._VCS == "SVN":
-            self.svn_commit(self.summary_checkout_file, message,
-                            user=self.cfg.CommitSummary[self.project].User,
-                            password=self.cfg.CommitSummary[self.project].Password)
-        elif self._VCS == "HG":
-            self.cd(self.cfg.Paths[self.project])
-            self.hg_commit(self.summary_checkout_file, message)
-            self.hg_pull(self._url, self.cfg.Paths[self.project])
-            self.hg_push(self._url)
+        self.hg_commit(self.summary_checkout_file, message)
+        # self.hg_pull(self._url, self.cfg.Paths[self.project], rebase=True)
+        self.hg_pull(self.cfg.Paths[self.project], rebase=True)
+        self.hg_push(self._url)
+        
+    def svn_commit_summary(self, summary, message):
+        shutil.copyfile(summary, self.summary_checkout_file)
+        
+        # Ensure that the summary we are about to commit has already been
+        # added to the repo.
+        self.svn_ensure_version_controlled(
+            self.summary_checkout_file,
+            user=self.cfg.CommitSummary[self.project].User,
+            password=self.cfg.CommitSummary[self.project].Password)
+            
+        # Commit the current summary.
+        self.svn_commit(self.summary_checkout_file, message,
+                        user=self.cfg.CommitSummary[self.project].User,
+                        password=self.cfg.CommitSummary[self.project].Password)
