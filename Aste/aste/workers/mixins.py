@@ -273,7 +273,7 @@ class MercurialMixin(workers.BaseWorker):
         """
         The ``password`` is expected to be rot47ed.
         """
-
+		
         self.__user = user
         self.__password = aste.utils.misc.rot47(password)
 
@@ -286,12 +286,17 @@ class MercurialMixin(workers.BaseWorker):
                   abort. If there are cases where a non-zero returncode
                   does not indicate an abort-worthy error, we should rather
                   pass an abort-detection function.
+                  
+        .. todo:: HG.CLIArgs might contain information that should not
+                  appear in the logfile.
         """
 
-        cmd = "%s %s" % (self.cfg.Apps.hg, arg)
+        cliArgs = self.cfg.HG['CLIArgs'] if 'CLIArgs' in self.cfg.HG else ''
+        
+        cmd = "%s %s %s" % (self.cfg.Apps.hg, cliArgs, arg)
         if logarg == None:
             logarg = arg
-        logcmd = "%s %s" % (self.cfg.Apps.hg, logarg)
+        logcmd = "%s %s %s" % (self.cfg.Apps.hg, cliArgs, logarg)
 
         result = self.run(cmd, logcmd=logcmd)
 
@@ -323,7 +328,7 @@ class MercurialMixin(workers.BaseWorker):
             result = self.hg_checkout(url, destDir)
         else:
             self.cd(destDir)
-            result = self.hg_pull(destDir)
+            result = self.hg_pull()
             result = self.hg_update()
 
         self.cd(destDir)
@@ -387,10 +392,6 @@ class MercurialMixin(workers.BaseWorker):
 
         return self._hg_run(arg, abort=abort)
 
-    # TODO: hg_push and hg_pull are currently inconsistent in the sense that
-    #       hg_push requires to be executed in the local repository
-    #       whereas hg_pull takes the local repository as an argument (localdir).
-        
     def hg_push(self, url, abort=True):
         """
         Push to the repository under ``url``.
@@ -403,9 +404,9 @@ class MercurialMixin(workers.BaseWorker):
         print "arg", arg
         print "logarg", logarg
 
-        return self._hg_run(arg, logarg=logarg, abort=abort)
+        # return self._hg_run(arg, logarg=logarg, abort=abort)
         
-    def hg_pull(self, localdir, abort=True, rebase=False):
+    def hg_pull(self, abort=True, rebase=False):
         """
         .. todo::
             The following python code can be used e.g. when starting Aste to
@@ -417,7 +418,7 @@ class MercurialMixin(workers.BaseWorker):
             obviously be better.
         """
 
-        arg = 'pull %s' % localdir
+        arg = 'pull'
         if rebase: arg += ' --rebase'
 
         return self._hg_run(arg, abort=abort)

@@ -116,7 +116,7 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
         self.project = project
         self._VCS = VCS
         self._url = url
-
+        
         self.set_default_auth(self.cfg.CommitSummary[project].User,
                               self.cfg.CommitSummary[project].Password)
 
@@ -191,29 +191,6 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
         else:
             raise NonBuildError("%s._VCS has unexpected value %s" % (self.__class__.__name__, self._VCS))
 
-        # shutil.copyfile(summary, self.summary_checkout_file)
-
-        # # Ensure that the summary we are about to commit has already been
-        # # added to the repo.
-        # if self._VCS == "SVN":
-            # self.svn_ensure_version_controlled(
-                # self.summary_checkout_file,
-                # user=self.cfg.CommitSummary[self.project].User,
-                # password=self.cfg.CommitSummary[self.project].Password)
-        # elif self._VCS == "HG":
-            # self.hg_ensure_version_controlled(self.summary_checkout_file)
-
-        # # Commit the current summary.
-        # if self._VCS == "SVN":
-            # self.svn_commit(self.summary_checkout_file, message,
-                            # user=self.cfg.CommitSummary[self.project].User,
-                            # password=self.cfg.CommitSummary[self.project].Password)
-        # elif self._VCS == "HG": self.hg_commit_summary(summary, message)
-            # self.cd(self.cfg.Paths[self.project])
-            # self.hg_commit(self.summary_checkout_file, message)
-            # self.hg_pull(self._url, self.cfg.Paths[self.project])
-            # self.hg_push(self._url)
-
     def hg_commit_summary(self, summary, message):
         self.cd(self.cfg.Paths[self.project])
         shutil.copyfile(summary, self.summary_checkout_file)
@@ -224,10 +201,14 @@ class CommitSummaryWorker(MercurialMixin, SVNMixin, BaseWorker):
 
         # Commit the current summary.
         self.hg_commit(self.summary_checkout_file, message)
-        # self.hg_pull(self._url, self.cfg.Paths[self.project], rebase=True)
-        self.hg_pull(self.cfg.Paths[self.project], rebase=True)
-        self.hg_push(self._url)
         
+        # Make sure we are in sync with the latest remote revision
+        self._hg_run("shelve --all --force")
+        self.hg_pull(self.cfg.Paths[self.project], rebase=True)
+        
+        # Push the summary
+        self.hg_push(self._url)
+
     def svn_commit_summary(self, summary, message):
         shutil.copyfile(summary, self.summary_checkout_file)
         

@@ -73,7 +73,8 @@ class ChaliceMatchingWorker(BuildWorker):
                 [accept],
                 [str]
             ), (
-                ['(\[error\] .+:\d+: .*)'],
+                ['(\[error\] .+:\d+: .*)',
+                 '(java.io.IOException: .*)'],
                 # ['(?m)^(\[error\] .+:\d+: .*)$'],
                 [_raiseBuildError], # Python 2.7: Can't raise an error inside a lambda expression, hence this method call
                 [str]

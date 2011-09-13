@@ -141,7 +141,7 @@ class FullBuild(Task):
 
 # TODO: 2011-08-17 Malte:
 #   RecordTimings and ExportTimingsCSV should be generic. Check, and if so,
-#   move to utils.py (or create a timings.py).
+#   move to tasks/utils.py (or create a tasks/timings.py).
 #   Possible problem: Are the files used to store the timings hard-coded?
 class RecordTimings(Task):
     @errorhandling.add_context("Recording test timings")

@@ -62,26 +62,26 @@ class AbstractBuildTask(Task):
         pass
 
     def run(self, **kwargs):
-        non_build_error = None
+        build_error = False
 
         # Errors are re-raised to the next layer (it should finally reach run.py
         # and trigger an error mail.
         # Note that
+        #   'except BuildError: raise'
+        # or
         #   'except BuildError as err: raise'
-        # differs from 
+        # differ from 
         #   'except BuildError as err: raise err'
-        # because the former will preserve the original stack trace whereas
-        # the latter starts a new stack trace.
+        # because the first two 'raise' will preserve the original stack trace
+        # whereas the last 'raise' starts a new stack trace.
         
         try:
             self.build(**kwargs)
         except BuildError:
-            raise
-        except NonBuildError as err:
-            non_build_error = err
+            build_error = True
             raise
         finally:
-            if non_build_error == None:
+            if build_error:
                 self.commit_summary_if_changed(self.worker.project_data['build']['success'])
 
     def commit_summary_if_changed(self, success):

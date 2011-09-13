@@ -83,6 +83,7 @@ Flags: {
 }
 
 HG: {
+	CLIArgs: '--config extensions.rebase= --config extensions.hgshelve=D:\\wuesthov\\mercurial\\hgshelve.py'
     Update: True    # Update or clean checkout
     SpecSharp: 'https://hg01.codeplex.com/specsharp'
     SscBoogie: 'https://hg01.codeplex.com/specsharp'
