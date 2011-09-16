@@ -73,8 +73,7 @@ class ChaliceMatchingWorker(BuildWorker):
                 [accept],
                 [str]
             ), (
-                ['(\[error\] .+:\d+: .*)',
-                 '(java.io.IOException: .*)'],
+                ['(\[error\] .+:\d+: .*)'],
                 # ['(?m)^(\[error\] .+:\d+: .*)$'],
                 [_raiseBuildError], # Python 2.7: Can't raise an error inside a lambda expression, hence this method call
                 [str]
@@ -82,11 +81,11 @@ class ChaliceMatchingWorker(BuildWorker):
         ],
         'envfatals': [
             (
-                ['\d+>?(ERROR copying)'],
-                [_raiseBuildError], [str]
+                ['(java.io.IOException: .*)'],
+                [raiseNonBuildError], [lambda match: match[0]]
             ), (
                 ['The process cannot access the file because it is being used by another process'],
-                [_raiseBuildError], [str]
+                [raiseNonBuildError], [lambda match: match[0]]
             )
         ]
     }
@@ -123,19 +122,37 @@ class ChaliceWorker(ChaliceMatchingWorker):
         checkoutWorker = CheckoutWorker(self.env)
         checkoutWorker.getChalice()
 
+    def __runSbtBasedTool(self, sbtCmd):
+        cmdSetIvyHome = "set JAVA_OPTS=-Dsbt.ivy.home=" + self.cfg.Paths.Sbt.IvyHome
+        cmd = 'cmd /c "(%s) && (%s)"' % (cmdSetIvyHome, sbtCmd)
+        
+        # Execute command and match against error/success patterns. These patterns should
+        # include Sbt errors and failures and Java exceptions.
+        return self._runDefaultBuildStep(cmd)
+        
     def buildChalice(self):
         self.cd(self.cfg.Paths.Chalice + "\\Chalice")
+        
+        # cmdSetIvyHome = "set JAVA_OPTS=-Dsbt.ivy.home=" + self.cfg.Paths.Sbt.IvyHome
+        
         cmd = "sbt.bat clean compile"
+        
+        # cmd = 'cmd /c "(%s) && (%s)"' % (cmdSetIvyHome, cmdSbt)
+        # cmd = 'cmd /c "%s"' % (cmdSbt)
+        # cmd = "%s" % (cmdSbt)
+        
         # cmd = 'cmd.exe /C rem'
             # Noop cmd, for example for the case that 
             # ChaliceMatchingWorker._matchDefaults overwrites the received
             # output with mock output.
-        self._runDefaultBuildStep(cmd)
+        
+        # self._runDefaultBuildStep(cmd)
+        self.__runSbtBasedTool(cmd)
 
     def testChalice(self):
         # Matcher detecting a failed test case. The match group (*.?) captures
         # the name of the failing test case.
-        failMatcher = [(['(?m)^FAIL: (.*?)$'], [accept], [str])]
+        failMatcher = [(['(?m)^FAIL: (.*?)$', '(?m)^ERROR: (.*?)$'], [accept], [str])]
         successMatcher = [(['(?m)^OK: (.*?)$'], [accept], [str])]
         
         summaryMatcher = [(
@@ -185,7 +202,8 @@ class ChaliceWorker(ChaliceMatchingWorker):
     def zip_binaries(self, filename):
         self.cd(self.cfg.Paths.Chalice + "\\Chalice\\scripts\\create_release")
         cmd = "create_release.bat"
-        self.runSafely(cmd)
+        # self.runSafely(cmd)
+        self.__runSbtBasedTool(cmd)
         # make_archive expects an archive name without a filename extension.
         archive_name = os.path.splitext(os.path.abspath(filename))[0]
         root_dir = os.path.abspath("release")

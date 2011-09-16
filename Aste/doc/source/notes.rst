@@ -44,6 +44,11 @@ Notes
 
   I did not get similiar errors when manually starting the scheduled task from
   the command-line via ``schtasks /Run /TN <taskname>``.
+  
+* If a local user is used to run the scheduled Windows Task, make sure that
+  the necessary Python modules are available for that user. In my case the ``suds``
+  package wasn't available initially, but it was after I added the local user to
+  the ``Administrators`` group.
 
 Dev Links
 ---------

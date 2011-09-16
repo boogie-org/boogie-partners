@@ -38,9 +38,17 @@ Paths: {
     # This section only contains the main source code paths. Several subdirectories are
     # hard-coded in the Python script and used relative to these main paths.
 
-    Aste: 'C:\\scmalte\\Develop\\BoogiePartners\\Aste'
-    CheckoutRoot: 'C:\\Temp\\aste'
+    Aste: 'D:\\wuesthov\\boogiepartners\Aste'
+    CheckoutRoot: 'D:\\Temp\\aste'
     Chalice: $Paths.CheckoutRoot + '\\Boogie' # See comment 2011-08-16 Malte
+	
+	HG: {
+		ShelveExtension: 'D:\\wuesthov\\mercurial\\hgshelve.py'
+	}
+	
+	Sbt: {
+		IvyHome: 'D:\\temp\\.ivy2\\' # See comment 2011-09-15 Malte
+	}
 }
 
 Apps: {
@@ -48,12 +56,12 @@ Apps: {
 
     # Use 8.3-style paths here to make sure that the correct paths are
     # forwarded starting from batch files via Chalice to Boogie.
-    Boogie: 'C:\\PROGRA~4\\boogie-nightly\\Boogie.exe'
+    Boogie: 'C:\\PROGRA~2\\BOOGIE~1\\Boogie.exe'
     Z3: 'C:\\PROGRA~2\\MI4430~1\\Z3-2.15\\x64\\z3.exe'
 }
 
 Logging: {
-    Root: 'C:\\Temp\\astelogs\\chalice'
+    Root: 'D:\\wuesthov\\Temp\\astelogs\\chalice'
     VerboseLog: $Logging.Root + '\\verbose.log'
     SummaryLog: $Logging.Root + '\\summary.log'
     Backups: 10000    # Keep the last n log files.
@@ -67,14 +75,14 @@ Logging: {
 # -----------------------------------------------------------------------------
 
 Flags: {
-    Tests: True              # Run tests?
-    Stderr: True             # Also log to stderr?
-    UploadSummary: True      # Upload the summary file?
-    UploadTheBuild: True     # Should the build be uploaded to CodePlex?
+    Tests: True             # Run tests?
+    Stderr: True            # Also log to stderr?
+    UploadSummary: False     # Upload the summary file?
+    UploadTheBuild: False    # Should the build be uploaded to CodePlex?
 }
 
 HG: {
-	CLIArgs: '--config extensions.rebase= --config extensions.hgshelve=D:\\wuesthov\\mercurial\\hgshelve.py'
+	CLIArgs: '--config extensions.rebase= --config extensions.hgshelve=' + $Paths.HG.ShelveExtension
     Update: True # Update or clean checkout
     Chalice: 'https://hg01.codeplex.com/boogie' # See comment 2011-08-16 Malte
 }

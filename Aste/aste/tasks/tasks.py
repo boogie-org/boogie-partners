@@ -62,7 +62,7 @@ class AbstractBuildTask(Task):
         pass
 
     def run(self, **kwargs):
-        build_error = False
+        commit_summary = False
 
         # Errors are re-raised to the next layer (it should finally reach run.py
         # and trigger an error mail.
@@ -77,11 +77,12 @@ class AbstractBuildTask(Task):
         
         try:
             self.build(**kwargs)
+            commit_summary = True
         except BuildError:
-            build_error = True
+            commit_summary = True
             raise
         finally:
-            if build_error:
+            if commit_summary:
                 self.commit_summary_if_changed(self.worker.project_data['build']['success'])
 
     def commit_summary_if_changed(self, success):

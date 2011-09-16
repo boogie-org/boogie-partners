@@ -31,7 +31,7 @@ from aste.workers.boogieworkers import BoogieWorker
 from aste.workers.sscboogieworkers import SscBoogieWorker
 
 import aste.utils.errorhandling as errorhandling
-from aste.tasks.tasks import BoogieTask
+from aste.tasks.boogie import BoogieTask, FullBuild, generate_report
 
 class SpecSharpCheckinTests(Task):
     def run(self):
