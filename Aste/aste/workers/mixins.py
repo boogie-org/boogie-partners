@@ -401,10 +401,7 @@ class MercurialMixin(workers.BaseWorker):
         arg = 'push ' + self._insert_credentials(url, self.__user, self.__password)
         logarg = 'push ' + self._insert_credentials(url, self.__user, "********")
         
-        print "arg", arg
-        print "logarg", logarg
-
-        # return self._hg_run(arg, logarg=logarg, abort=abort)
+        return self._hg_run(arg, logarg=logarg, abort=abort)
         
     def hg_pull(self, abort=True, rebase=False):
         """
