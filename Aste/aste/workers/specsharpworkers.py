@@ -53,13 +53,13 @@ class SpecSharpWorker(MSBuildWorker):
 
     def buildSpecSharp(self):
         self.cd(self.cfg.Paths.SpecSharp)
-        cmd = "%s SpecSharp10.sln /Rebuild Debug" % self.cfg.Apps.devenv2010
+        cmd = "%s SpecSharp.sln /Rebuild Debug" % self.cfg.Apps.devenv2010
         self._runDefaultBuildStep(cmd)
 
     def buildSpecSharpCheckinTests(self):
         self.cd(self.cfg.Paths.SpecSharp)
 
-        cmd = "%s SpecSharp10.sln /Project \"Checkin Tests\" /Build" % self.cfg.Apps.devenv2010
+        cmd = "%s SpecSharp.sln /Project \"Checkin Tests\" /Build" % self.cfg.Apps.devenv2010
 
         self._runDefaultBuildStep(cmd)
 
