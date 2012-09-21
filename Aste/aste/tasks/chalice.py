@@ -52,7 +52,7 @@ class ChaliceTask(AbstractBuildTask):
 
     @errorhandling.add_context("Building Chalice")
     def build(self):
-        self.worker.check_z3_version('2.15')
+        self.worker.check_z3_version('4.1')
         self.worker.checkoutChalice()
 
         self.worker.project_data['build']['started'] = True

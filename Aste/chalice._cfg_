@@ -1,4 +1,4 @@
-# --------------------------------- LICENSE: ----------------------------------
+﻿# --------------------------------- LICENSE: ----------------------------------
 # The file is part of Aste (pronounced "S-T"), an automatic build tool
 # originally tailored towards Spec# and Boogie.
 #
@@ -56,8 +56,8 @@ Apps: {
 
     # Use 8.3-style paths here to make sure that the correct paths are
     # forwarded starting from batch files via Chalice to Boogie.
-    Boogie: 'C:\\PROGRA~2\\BOOGIE~1\\Boogie.exe'
-    Z3: 'C:\\PROGRA~2\\MI4430~1\\Z3-2.15\\x64\\z3.exe'
+    Boogie: 'C:\\PROGRA~2\\BOOGIE~2\\Boogie.exe'
+    Z3: 'C:\\PROGRA~2\\MI4430~1\\Z3-4.1\\x64\\z3.exe'
 }
 
 Logging: {
