@@ -154,6 +154,7 @@ class ReleaseUploader(BaseWorker):
         super(ReleaseUploader, self).__init__(env)
 
         self.client = Client(self.cfg.Nightlies.SoapUrl)
+        self.client.set_options(timeout=300)
 
     def create_release(self, project_name, username, password, release_name,
                        release_description=None,
